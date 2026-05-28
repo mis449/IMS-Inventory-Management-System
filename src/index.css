@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-sky: #0284c7;      /* sky-600 */
+  --primary-light: #f0f9ff;    /* sky-50 */
+  --bg-white: #ffffff;
+  --border-light: #e2e8f0;    /* slate-200 */
+  --text-slate: #334155;      /* slate-700 */
+}
+
+body {
+  background-color: #f8fafc;   /* slate-50 background for clean contrast */
+  color: var(--text-slate);
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Page Content Container */
+.page-content {
+  background: white;
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border-light);
+  padding: 1.5rem;
+}
+
+/* Premium Glassmorphism */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.modal-backdrop {
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+/* Elegant Custom Scrollbar (Premium replacement for hiding scrollbars) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}
+
+/* Scrollbar Hide class for elements that explicitly need it */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Typography Overrides */
+.text-navy { color: #0f172a; }
+.bg-navy { background-color: #0f172a; }
+
+/* Animation - Premium Hover and Transitions */
+.transition-premium {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Standardized SaaS UI Classes */
+.hr-card {
+  @apply bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-premium duration-300;
+}
+
+.hr-input {
+  @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 outline-none transition-premium text-sm bg-white text-slate-800 placeholder-slate-400;
+}
+
+.hr-button-primary {
+  @apply bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 px-5 rounded-xl transition-premium shadow-md shadow-sky-100 active:scale-95 text-xs uppercase tracking-wider flex items-center justify-center gap-2;
+}
+
+.hr-button-secondary {
+  @apply bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold py-2.5 px-5 rounded-xl transition-premium text-xs uppercase tracking-wider flex items-center justify-center gap-2;
+}
+
+/* Table Enhancements */
+table th {
+  @apply bg-slate-50/80 text-slate-600 font-bold text-xs uppercase tracking-wider py-3.5 px-4 text-center border-b border-slate-100;
+}
+
+table td {
+  @apply py-3.5 px-4 text-sm text-slate-700 border-b border-slate-100/70;
+}
+
+table tbody tr {
+  @apply transition-colors duration-150 hover:bg-slate-50/50;
+}
+
+/* Premium KPI Stat Card Styles */
+.stat-card-gradient-1 {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+}
+.stat-card-gradient-2 {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+}
+.stat-card-gradient-3 {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+}
+.stat-card-gradient-4 {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+/* Subtle Pulse */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.96; transform: scale(1.005); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
