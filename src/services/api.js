@@ -6,9 +6,7 @@ const UID = import.meta.env.VITE_API_UID || 'quote';
 const UPW = import.meta.env.VITE_API_UPW || '1234';
 
 const getApiUrl = (apiKey) => {
-  const base = (import.meta.env.DEV || import.meta.env.VITE_API_BASE_URL !== '/api')
-    ? (import.meta.env.VITE_API_BASE_URL || '/api')
-    : 'https://parekhgallerium.visualurl.in/URLApi/api';
+  const base = import.meta.env.VITE_API_BASE_URL || '/api';
   return `${base}/UDApi?APIKEY=${apiKey}&UID=${UID}&UPW=${UPW}`;
 };
 
