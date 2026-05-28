@@ -7,6 +7,7 @@ const useDataStore = create((set, get) => ({
   isLoading: false,
   error: null,
   transactions: [],
+  inventorySummary: [],
 
   // Fetch items from the merged API endpoint
   fetchItems: async (force = false) => {
@@ -18,6 +19,19 @@ const useDataStore = create((set, get) => ({
       set({ items: mergedData, isLoading: false });
     } catch (err) {
       set({ error: err.message || 'Failed to load catalog data', isLoading: false });
+    }
+  },
+
+  // Fetch inventory summary (for opening qty auto-population)
+  fetchInventorySummary: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('inventory_summary')
+        .select('*');
+      if (error) throw error;
+      set({ inventorySummary: data || [] });
+    } catch (err) {
+      console.error('Error fetching inventory summary:', err);
     }
   },
 
@@ -48,6 +62,7 @@ const useDataStore = create((set, get) => ({
         itemName: row.item_name,
         category: row.category,
         brand: row.brand,
+        vendorName: row.vendor_name || '',
         price: Number(row.unit_price || 0),
         qty: row.qty,
         totalPrice: Number(row.total_price || 0),
@@ -61,7 +76,7 @@ const useDataStore = create((set, get) => ({
     }
   },
 
-  // Log a new transaction to Supabase (which can be 'Pending' or 'Completed')
+  // Log one or multiple new transactions to Supabase
   addTransaction: async (txData) => {
     try {
       const typeMapRev = {
@@ -71,30 +86,38 @@ const useDataStore = create((set, get) => ({
         'Sales Return': 'sales_return'
       };
 
-      const planned_date = txData.date;
-      const actual_date = txData.status === 'Completed' ? txData.date : null;
+      const isArray = Array.isArray(txData);
+      const dataArray = isArray ? txData : [txData];
+
+      const payload = dataArray.map(tx => {
+        const planned_date = tx.date;
+        const actual_date = tx.status === 'Completed' ? tx.date : null;
+        return {
+          transaction_type: typeMapRev[tx.type] || tx.type.toLowerCase(),
+          item_code: tx.itemCode,
+          item_name: tx.itemName,
+          category: tx.category,
+          brand: tx.brand,
+          vendor_name: tx.vendorName,
+          unit_price: tx.price,
+          qty: tx.qty,
+          remarks: tx.remarks,
+          planned_date,
+          actual_date
+        };
+      });
 
       const { data, error } = await supabase
         .from('inventory_transactions')
-        .insert([{
-          transaction_type: typeMapRev[txData.type] || txData.type.toLowerCase(),
-          item_code: txData.itemCode,
-          item_name: txData.itemName,
-          category: txData.category,
-          brand: txData.brand,
-          unit_price: txData.price,
-          qty: txData.qty,
-          remarks: txData.remarks,
-          planned_date,
-          actual_date
-        }])
+        .insert(payload)
         .select();
 
       if (error) throw error;
       await get().fetchTransactions();
-      return data?.[0];
+      return isArray ? data : data?.[0];
     } catch (err) {
       console.error('Error logging transaction:', err);
+      throw err;
     }
   },
 

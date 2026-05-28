@@ -8,26 +8,23 @@ import { TabSwitcher } from '../../components/StandardButtons';
 import useDataStore from '../../store/dataStore';
 
 export default function InventoryForm() {
-  const { items, isLoading, error, fetchItems, transactions, addTransaction, updateTransaction, removeTransaction, fetchTransactions } = useDataStore();
+  const { items, isLoading, error, fetchItems, transactions, addTransaction, updateTransaction, removeTransaction, fetchTransactions, inventorySummary, fetchInventorySummary } = useDataStore();
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [activeTab, setActiveTab] = useState('Pending'); // 'Pending' | 'Completed'
 
   // Add Inventory Form State
-  const [formData, setFormData] = useState({
+  const [commonData, setCommonData] = useState({
     date: new Date().toISOString().split('T')[0],
-    itemCode: '',
-    itemName: '',
-    category: '',
-    brand: '',
-    price: 0,
     transactionType: 'Purchase',
-    qty: '',
-    openingQty: 0, // Opening Qty must ALWAYS default to 0
+    vendorName: '',
     notes: '',
     status: 'Pending' // New logs default to Pending status
   });
+
+  const getEmptyProduct = () => ({ id: Date.now() + Math.random(), itemCode: '', itemName: '', category: '', brand: '', price: 0, qty: '', openingQty: 0, totalPrice: 0 });
+  const [products, setProducts] = useState([getEmptyProduct()]);
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -45,7 +42,8 @@ export default function InventoryForm() {
   useEffect(() => {
     fetchItems(true);
     fetchTransactions();
-  }, [fetchItems, fetchTransactions]);
+    fetchInventorySummary();
+  }, [fetchItems, fetchTransactions, fetchInventorySummary]);
 
   const handleClearFilters = () => {
     setFilters({
@@ -60,80 +58,113 @@ export default function InventoryForm() {
   };
 
   // Pre-fill fields when selecting Item Code
-  const handleItemCodeSelect = (code) => {
+  const handleItemCodeSelect = (code, rowId) => {
     const item = items.find(i => (i.ItemCode || i.code) === code);
+    const summary = inventorySummary.find(s => s.item_code === code) || { closing_qty: 0 };
     if (item) {
-      setFormData(prev => ({
-        ...prev,
+      setProducts(prev => prev.map(p => p.id === rowId ? {
+        ...p,
         itemCode: code,
         itemName: item.ItemName || item.name || '',
         category: item.Category || item.category || '',
         brand: item.BrandName || item.brand || '',
-        price: Number(item.MRP || item.price || 0)
-      }));
+        price: Number(item.MRP || item.price || 0),
+        openingQty: summary.closing_qty,
+        totalPrice: Number(item.MRP || item.price || 0) * (Number(p.qty) || 0)
+      } : p));
     }
   };
 
   // Pre-fill fields when selecting Item Name
-  const handleItemNameSelect = (name) => {
+  const handleItemNameSelect = (name, rowId) => {
     const item = items.find(i => (i.ItemName || i.name) === name);
     if (item) {
-      setFormData(prev => ({
-        ...prev,
-        itemCode: item.ItemCode || item.code || '',
+      const code = item.ItemCode || item.code || '';
+      const summary = inventorySummary.find(s => s.item_code === code) || { closing_qty: 0 };
+      setProducts(prev => prev.map(p => p.id === rowId ? {
+        ...p,
+        itemCode: code,
         itemName: name,
         category: item.Category || item.category || '',
         brand: item.BrandName || item.brand || '',
-        price: Number(item.MRP || item.price || 0)
-      }));
+        price: Number(item.MRP || item.price || 0),
+        openingQty: summary.closing_qty,
+        totalPrice: Number(item.MRP || item.price || 0) * (Number(p.qty) || 0)
+      } : p));
     }
   };
 
-  const handleSaveTransaction = (e) => {
+  const handleProductChange = (rowId, field, value) => {
+    setProducts(prev => prev.map(p => {
+      if (p.id === rowId) {
+        const newRow = { ...p, [field]: value };
+        if (field === 'qty' || field === 'price') {
+          newRow.totalPrice = (Number(newRow.qty) || 0) * (Number(newRow.price) || 0);
+        }
+        return newRow;
+      }
+      return p;
+    }));
+  };
+
+  const addRow = () => {
+    setProducts(prev => [...prev, getEmptyProduct()]);
+  };
+
+  const removeRow = (rowId) => {
+    if (products.length > 1) {
+      setProducts(prev => prev.filter(p => p.id !== rowId));
+    }
+  };
+
+  const handleSaveTransaction = async (e) => {
     e.preventDefault();
 
-    if (!formData.date || !formData.itemCode) {
-      toast.error('Please select date and item code!');
+    if (!commonData.date) {
+      toast.error('Please select a date!');
       return;
     }
 
-    const qty = Number(formData.qty) || 0;
-    if (qty <= 0) {
-      toast.error('Please enter a valid quantity!');
+    const validProducts = products.filter(p => p.itemCode && Number(p.qty) > 0);
+    if (validProducts.length === 0) {
+      toast.error('Please add at least one valid item with quantity > 0!');
       return;
     }
 
-    addTransaction({
-      date: formData.date,
-      type: formData.transactionType,
-      itemCode: formData.itemCode,
-      itemName: formData.itemName,
-      category: formData.category,
-      brand: formData.brand,
-      price: formData.price,
-      qty: qty,
-      totalPrice: formData.price * qty,
-      remarks: formData.notes.trim(),
-      status: formData.status // 'Pending' or 'Completed'
-    });
+    const baseRemarks = commonData.notes.trim();
 
-    // Reset Form Data
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      itemCode: '',
-      itemName: '',
-      category: '',
-      brand: '',
-      price: 0,
-      transactionType: 'Purchase',
-      qty: '',
-      openingQty: 0,
-      notes: '',
-      status: 'Pending'
-    });
+    const txPayloads = validProducts.map(p => ({
+      date: commonData.date,
+      type: commonData.transactionType,
+      itemCode: p.itemCode,
+      itemName: p.itemName,
+      category: p.category,
+      brand: p.brand,
+      vendorName: commonData.vendorName,
+      price: p.price,
+      qty: Number(p.qty),
+      totalPrice: p.totalPrice,
+      remarks: baseRemarks,
+      status: commonData.status
+    }));
 
-    setShowFormModal(false);
-    toast.success(`Logged transaction successfully!`);
+    try {
+      await addTransaction(txPayloads);
+      
+      // Reset Form Data
+      setCommonData({
+        date: new Date().toISOString().split('T')[0],
+        transactionType: 'Purchase',
+        vendorName: '',
+        notes: '',
+        status: 'Pending'
+      });
+      setProducts([getEmptyProduct()]);
+      setShowFormModal(false);
+      toast.success(`Logged ${validProducts.length} transactions successfully!`);
+    } catch(err) {
+      toast.error('Failed to save transactions.');
+    }
   };
 
   const handleApprove = (txId) => {
@@ -189,7 +220,7 @@ export default function InventoryForm() {
 
   const tableHeaders = [
     "Serial No", "Date", "Transaction Type", "Item Code", "Item Name",
-    "Category", "Brand", "Unit Price", "Qty", "Total Price", "Remarks", "Actions"
+    "Category", "Brand", "Vendor", "Unit Price", "Qty", "Total Price", "Remarks", "Actions"
   ];
 
   const renderRow = (item, idx) => {
@@ -213,6 +244,7 @@ export default function InventoryForm() {
         <td className="px-4 py-3 text-left text-xs font-semibold text-slate-900 whitespace-nowrap uppercase truncate max-w-[180px]">{item.itemName}</td>
         <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.category}</td>
         <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.brand}</td>
+        <td className="px-4 py-3 text-center text-[11px] font-semibold text-slate-700 whitespace-nowrap">{item.vendorName || '-'}</td>
         <td className="px-4 py-3 text-center text-xs text-slate-700 font-medium whitespace-nowrap">₹{Number(item.price || 0).toLocaleString('en-IN')}</td>
         <td className="px-4 py-3 text-center text-xs text-sky-600 font-bold whitespace-nowrap">{item.qty}</td>
         <td className="px-4 py-3 text-center text-xs text-emerald-600 font-bold whitespace-nowrap">₹{Number(item.totalPrice || 0).toLocaleString('en-IN')}</td>
@@ -455,22 +487,22 @@ export default function InventoryForm() {
         onClose={() => setShowFormModal(false)}
         title="Add Inventory"
         onSubmit={handleSaveTransaction}
-        submitText="Save Log"
-        maxWidth="max-w-2xl"
+        submitText="Save Logs"
+        maxWidth="max-w-5xl"
       >
-        <div className="space-y-5">
+        <div className="space-y-6">
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            
+          {/* Common Fields Header */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-sky-50/40 p-5 rounded-2xl border border-sky-100">
             {/* Select Date */}
             <div className="space-y-1.5">
-              <label className="block text-xs text-slate-700 font-bold uppercase tracking-wider">Select Date *</label>
+              <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Select Date *</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-[12px] text-slate-400" size={14} />
                 <input
                   type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  value={commonData.date}
+                  onChange={(e) => setCommonData({ ...commonData, date: e.target.value })}
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 text-xs md:text-sm h-[38px] transition-all outline-none bg-white"
                   required
                 />
@@ -479,7 +511,7 @@ export default function InventoryForm() {
 
             {/* Transaction Type */}
             <div className="space-y-1.5">
-              <label className="block text-xs text-slate-700 font-bold uppercase tracking-wider">Transaction Type *</label>
+              <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Transaction Type *</label>
               <SearchableDropdown
                 options={[
                   { value: 'Purchase', label: 'Purchase' },
@@ -487,8 +519,8 @@ export default function InventoryForm() {
                   { value: 'Purchase Return', label: 'Purchase Return' },
                   { value: 'Sales Return', label: 'Sales Return' }
                 ]}
-                value={formData.transactionType}
-                onChange={(val) => setFormData({ ...formData, transactionType: val })}
+                value={commonData.transactionType}
+                onChange={(val) => setCommonData({ ...commonData, transactionType: val })}
                 placeholder="Select Type"
                 className="w-full"
                 height="h-[38px]"
@@ -496,128 +528,112 @@ export default function InventoryForm() {
               />
             </div>
 
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            
-            {/* Item Code search select */}
+            {/* Vendor Name */}
             <div className="space-y-1.5">
-              <label className="block text-xs text-slate-700 font-bold uppercase tracking-wider">Item Code *</label>
-              <SearchableDropdown
-                options={items.map(item => ({ value: item.ItemCode || item.code, label: item.ItemCode || item.code }))}
-                value={formData.itemCode}
-                onChange={handleItemCodeSelect}
-                placeholder="Search Item Code"
-                className="w-full"
-                height="h-[38px]"
-                rounded="rounded-xl"
-              />
-            </div>
-
-            {/* Item Name search select */}
-            <div className="space-y-1.5">
-              <label className="block text-xs text-slate-700 font-bold uppercase tracking-wider">Item Name Selector *</label>
-              <SearchableDropdown
-                options={items.map(item => ({ value: item.ItemName || item.name, label: item.ItemName || item.name }))}
-                value={formData.itemName}
-                onChange={handleItemNameSelect}
-                placeholder="Search Item Name"
-                className="w-full"
-                height="h-[38px]"
-                rounded="rounded-xl"
-              />
-            </div>
-
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-            
-            {/* Category Pre-fill */}
-            <div className="space-y-1.5">
-              <label className="block text-xs text-slate-400 font-bold uppercase tracking-wider">Category</label>
-              <div className="relative">
-                <Layers className="absolute left-3 top-[12px] text-slate-400" size={14} />
-                <input
-                  type="text"
-                  value={formData.category}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-150 bg-slate-100/50 text-slate-500 font-semibold rounded-xl cursor-not-allowed text-xs md:text-sm h-[38px] outline-none"
-                  readOnly
-                  placeholder="-"
-                />
-              </div>
-            </div>
-
-            {/* Brand Pre-fill */}
-            <div className="space-y-1.5">
-              <label className="block text-xs text-slate-400 font-bold uppercase tracking-wider">Brand</label>
-              <div className="relative">
-                <Tag className="absolute left-3 top-[12px] text-slate-400" size={14} />
-                <input
-                  type="text"
-                  value={formData.brand}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-150 bg-slate-100/50 text-slate-500 font-semibold rounded-xl cursor-not-allowed text-xs md:text-sm h-[38px] outline-none"
-                  readOnly
-                  placeholder="-"
-                />
-              </div>
-            </div>
-
-            {/* Unit Price Pre-fill */}
-            <div className="space-y-1.5">
-              <label className="block text-xs text-slate-400 font-bold uppercase tracking-wider">Unit Price</label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-[12px] text-slate-400" size={14} />
-                <input
-                  type="text"
-                  value={formData.price ? `₹${formData.price}` : ''}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-150 bg-slate-100/50 text-slate-600 font-bold rounded-xl cursor-not-allowed text-xs md:text-sm h-[38px] outline-none"
-                  readOnly
-                  placeholder="-"
-                />
-              </div>
-            </div>
-
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 bg-sky-50/20 p-4 rounded-2xl border border-sky-100/30">
-            
-            {/* Single Quantity */}
-            <div className="space-y-1.5">
-              <label className="block text-xs text-slate-700 font-bold uppercase tracking-wider text-center">Quantity *</label>
+              <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">
+                Vendor Name {(commonData.transactionType === 'Sales' || commonData.transactionType === 'Sales Return') ? '(Optional)' : '*'}
+              </label>
               <input
-                type="number"
-                min="1"
-                value={formData.qty}
-                onChange={(e) => setFormData({ ...formData, qty: e.target.value })}
-                placeholder="Enter Quantity"
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm h-[42px] focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 transition-all text-center font-bold bg-white"
+                type="text"
+                value={commonData.vendorName}
+                onChange={(e) => setCommonData({ ...commonData, vendorName: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 text-xs md:text-sm h-[38px] transition-all outline-none bg-white"
+                placeholder="Enter Vendor Name"
+                required={commonData.transactionType === 'Purchase' || commonData.transactionType === 'Purchase Return'}
               />
             </div>
-
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
-            {/* Opening Qty (always defaults to 0) */}
-            <div className="space-y-1.5">
-              <label className="block text-xs text-slate-400 font-bold uppercase tracking-wider">Opening Qty (Read-only)</label>
-              <input
-                type="number"
-                value={formData.openingQty}
-                readOnly
-                className="w-full px-4 py-2 border border-slate-150 bg-slate-100/50 text-slate-450 font-bold rounded-xl cursor-not-allowed text-xs md:text-sm h-[38px] outline-none"
-              />
+          {/* Dynamic Product Rows */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">Products</h3>
+            
+            {/* Desktop Header for Grid */}
+            <div className="hidden md:grid grid-cols-12 gap-3 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">
+              <div className="col-span-3 text-left">Item Code & Name</div>
+              <div className="col-span-2">Category & Brand</div>
+              <div className="col-span-1">Opening</div>
+              <div className="col-span-2">Qty</div>
+              <div className="col-span-2">Price</div>
+              <div className="col-span-1">Total</div>
+              <div className="col-span-1"></div>
+            </div>
+
+            {products.map((product, index) => (
+              <div key={product.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-white border border-slate-100 md:border-none p-3 md:p-0 rounded-xl md:rounded-none shadow-sm md:shadow-none">
+                
+                <div className="col-span-1 md:col-span-3 space-y-2 text-left">
+                  <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Item</div>
+                  <SearchableDropdown
+                    options={items.map(item => ({ value: item.ItemCode || item.code, label: `${item.ItemCode || item.code} - ${item.ItemName || item.name}` }))}
+                    value={product.itemCode}
+                    onChange={(val) => handleItemCodeSelect(val, product.id)}
+                    placeholder="Search Item Code / Name"
+                    className="w-full"
+                    height="h-[36px]"
+                    rounded="rounded-lg"
+                  />
+                  {product.itemName && (
+                    <div className="text-[10px] text-slate-500 truncate px-1" title={product.itemName}>{product.itemName}</div>
+                  )}
+                </div>
+
+                <div className="col-span-1 md:col-span-2 space-y-1">
+                   <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Category/Brand</div>
+                   <input type="text" value={product.category} readOnly className="w-full bg-slate-50 text-slate-500 text-xs px-2 py-1.5 rounded-lg border border-slate-100 outline-none text-center" placeholder="Category" />
+                   <input type="text" value={product.brand} readOnly className="w-full bg-slate-50 text-slate-500 text-xs px-2 py-1.5 rounded-lg border border-slate-100 outline-none text-center" placeholder="Brand" />
+                </div>
+
+                <div className="col-span-1 md:col-span-1 space-y-1 text-center">
+                  <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Opening</div>
+                  <input type="text" value={product.openingQty} readOnly className="w-full bg-slate-50 font-bold text-slate-400 text-xs px-2 py-2 rounded-lg border border-slate-100 outline-none text-center" />
+                </div>
+
+                <div className="col-span-1 md:col-span-2 space-y-1">
+                  <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Quantity *</div>
+                  <input type="number" min="1" value={product.qty} onChange={(e) => handleProductChange(product.id, 'qty', e.target.value)} className="w-full border border-sky-200 text-sky-700 font-bold text-sm px-2 py-2 rounded-lg outline-none text-center focus:ring-2 focus:ring-sky-500/20" placeholder="Qty" required />
+                </div>
+
+                <div className="col-span-1 md:col-span-2 space-y-1">
+                  <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Unit Price</div>
+                  <div className="relative">
+                    <span className="absolute left-2 top-2 text-slate-400 text-xs">₹</span>
+                    <input type="number" value={product.price} onChange={(e) => handleProductChange(product.id, 'price', e.target.value)} className="w-full border border-slate-200 text-slate-700 text-xs pl-5 pr-2 py-2 rounded-lg outline-none text-center bg-white" placeholder="0" />
+                  </div>
+                </div>
+
+                <div className="col-span-1 md:col-span-1 text-center font-bold text-emerald-600 text-sm">
+                   <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase mb-1 text-left">Total</div>
+                   ₹{product.totalPrice.toLocaleString('en-IN')}
+                </div>
+
+                <div className="col-span-1 md:col-span-1 flex justify-center md:justify-end">
+                   <button type="button" onClick={() => removeRow(product.id)} disabled={products.length === 1} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Remove Row">
+                      <Trash2 size={16} />
+                   </button>
+                </div>
+              </div>
+            ))}
+
+            <div className="flex justify-between items-center pt-2">
+              <button type="button" onClick={addRow} className="flex items-center gap-1.5 text-xs font-bold text-sky-600 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-4 py-2 rounded-xl transition-colors">
+                <Plus size={14} /> Add Row
+              </button>
+              <div className="text-sm font-black text-slate-800 bg-slate-100 px-5 py-2.5 rounded-xl border border-slate-200">
+                Grand Total: <span className="text-emerald-600 ml-2">₹{products.reduce((acc, curr) => acc + (curr.totalPrice || 0), 0).toLocaleString('en-IN')}</span>
+              </div>
             </div>
           </div>
 
           {/* Notes Input */}
-          <div className="space-y-1.5">
-            <label className="block text-xs text-slate-700 font-bold uppercase tracking-wider">Remarks / Notes</label>
+          <div className="space-y-1.5 pt-4 border-t border-slate-100">
+            <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Remarks / Notes</label>
             <textarea
-              rows="3"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows="2"
+              value={commonData.notes}
+              onChange={(e) => setCommonData({ ...commonData, notes: e.target.value })}
               placeholder="Enter transaction remarks or notes here..."
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 text-xs md:text-sm transition-all outline-none"
+              className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 text-xs md:text-sm transition-all outline-none"
             />
           </div>
 

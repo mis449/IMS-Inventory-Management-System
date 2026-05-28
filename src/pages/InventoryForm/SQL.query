@@ -138,6 +138,7 @@ CREATE TABLE public.inventory_transactions (
   item_name character varying NOT NULL,
   category character varying,
   brand character varying,
+  vendor_name character varying,
   unit_price numeric NOT NULL DEFAULT 0.00 CHECK (unit_price >= 0::numeric),
   qty integer NOT NULL CHECK (qty > 0),
   total_price numeric NOT NULL DEFAULT 0.00,
