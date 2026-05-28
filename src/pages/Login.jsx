@@ -176,7 +176,7 @@ const Login = () => {
       {/* Footer at Bottom */}
       <div className="py-6 text-center relative z-10 border-t border-slate-100 bg-white/50 backdrop-blur-sm">
         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">
-          Powered by <span className="font-extrabold text-sky-600">Botivate</span>
+          Powered by <a href="https://www.botivate.in/" target="_blank" rel="noopener noreferrer" className="font-extrabold text-sky-600 hover:underline transition-all">Botivate</a>
         </p>
       </div>
     </div>
