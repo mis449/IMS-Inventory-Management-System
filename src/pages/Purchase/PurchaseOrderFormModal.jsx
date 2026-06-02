@@ -176,7 +176,12 @@ export default function PurchaseOrderFormModal({ isOpen, onClose, onSave, initia
       const data = {
         docNo: initialData ? initialData.docNo : `PO-${Math.floor(1000 + Math.random() * 9000)}`,
         docDate: initialData ? initialData.docDate : new Date().toISOString().split('T')[0],
+        vendor: basicInfo.vendor,
         vendorName: basicInfo.vendor,
+        state: basicInfo.state || '',
+        mobile: basicInfo.mobile || '',
+        referenceNumber: otherInfo.referenceNumber || '',
+        referenceDate: otherInfo.expectedDeliveryDate || '',
         amount: summary.totalAmount,
         status: purchaseStatus,
         supplyStatus: supplyStatus,

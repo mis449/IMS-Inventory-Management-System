@@ -337,7 +337,15 @@ export default function InvoiceFormModal({ isOpen, onClose, onSave, initialData,
           {/* Top Control Bar */}
           <div className="w-full bg-white rounded-t-2xl border border-slate-150 p-4 flex justify-between items-center z-50 flex-shrink-0 shadow-md">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Print Preview ({printOrientation} Orientation)</span>
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Print Preview</span>
+              <select 
+                value={printOrientation} 
+                onChange={e => setPrintOrientation(e.target.value)}
+                className="ml-4 text-xs border border-slate-200 rounded px-2 py-1 outline-none"
+              >
+                <option value="Portrait">Portrait</option>
+                <option value="Horizontal">Landscape</option>
+              </select>
             </div>
             <div className="flex gap-2">
               <button

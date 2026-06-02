@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import ModalForm from '../../components/ModalForm';
 import useDataStore from '../../store/dataStore';
-import { createPurchaseReturn } from '../../services/PurchaseReturnService';
+import { createPurchaseReturn, updatePurchaseReturn } from '../../services/PurchaseReturnService';
 import VendorDetailsSection from '../../components/purchase/VendorDetailsSection';
 import NewVendorModal from '../../components/purchase/NewVendorModal';
 import SalesTabs from '../../components/sales/SalesTabs';
@@ -12,7 +12,7 @@ import OtherInformationTab from '../../components/OtherInformationTab';
 import CatalogModal from '../QuotationForm/CatalogModal';
 import { MessageSquare, StickyNote, Activity } from 'lucide-react';
 
-export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initialData }) {
+export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initialData, isConversion = false }) {
   const [activeTab, setActiveTab] = useState('ItemLines');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
@@ -31,6 +31,11 @@ export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initi
   const [basicInfo, setBasicInfo] = useState({
     vendor: '',
     address: '',
+    areaPinCode: '',
+    cityState: '',
+    state: '',
+    email: '',
+    mobile: '',
     validityDate: '',
     priceList: 'Standard',
     paymentTerms: 'Net 30'
@@ -58,8 +63,10 @@ export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initi
 
   useEffect(() => {
     if (initialData) {
-      if (initialData.vendor) {
-        setBasicInfo(prev => ({ ...prev, vendor: initialData.vendor }));
+      if (initialData.details && initialData.details.basicInfo) {
+        setBasicInfo(initialData.details.basicInfo);
+      } else if (initialData.vendorName || initialData.vendor) {
+        setBasicInfo(prev => ({ ...prev, vendor: initialData.vendorName || initialData.vendor }));
       }
       if (initialData.details?.items) {
         setItems(initialData.details.items.map(item => ({...item, id: Date.now() + Math.random()})));
@@ -160,12 +167,20 @@ export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initi
         returnNo: `PR-${Math.floor(1000 + Math.random() * 9000)}`,
         date: new Date().toISOString().split('T')[0],
         vendor: basicInfo.vendor,
+        vendorName: basicInfo.vendor,
+        state: basicInfo.state || '',
+        mobile: basicInfo.mobile || '',
         amount: summary.totalAmount,
         status: 'Active',
         refPurchase: initialData?.docNo || '-',
         details: { basicInfo, items, otherInfo, notes, summary }
       };
-      const saved = await createPurchaseReturn(data);
+      let saved;
+      if (initialData && initialData.id && !isConversion) {
+        saved = await updatePurchaseReturn(initialData.id, data);
+      } else {
+        saved = await createPurchaseReturn(data);
+      }
       onSave(saved);
     } catch (error) {
       toast.error('Failed to save purchase return');
@@ -179,9 +194,9 @@ export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initi
     <ModalForm
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? "New Purchase Return (From Purchase)" : "New Purchase Return"}
+      title={initialData && initialData.id && !isConversion ? "Edit Purchase Return" : (isConversion ? "New Purchase Return (From Purchase)" : "New Purchase Return")}
       onSubmit={handleSubmit}
-      submitText={isSubmitting ? 'Saving...' : 'Save Purchase Return'}
+      submitText={isSubmitting ? 'Saving...' : (initialData && initialData.id && !isConversion ? 'Update Purchase Return' : 'Save Purchase Return')}
       maxWidth="max-w-6xl"
     >
       <div className="space-y-6">

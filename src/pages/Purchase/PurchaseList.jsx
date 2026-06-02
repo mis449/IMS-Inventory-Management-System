@@ -14,6 +14,7 @@ export default function PurchaseList({ conversionContext, clearConversionContext
   const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [activeTab, setActiveTab] = useState('All');
   
+  
   const [filters, setFilters] = useState({
     searchQuery: ''
   });
@@ -107,7 +108,7 @@ export default function PurchaseList({ conversionContext, clearConversionContext
       <td className="px-4 py-3 text-center text-[11px] text-slate-500 whitespace-nowrap">{item.series || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-teal-600 font-bold whitespace-nowrap">{item.docNo || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{item.docDate || '-'}</td>
-      <td className="px-4 py-3 text-left text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendor || '-'}</td>
+      <td className="px-4 py-3 text-center text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendor || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.state || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.mobile || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.billNo || '-'}</td>
@@ -225,6 +226,7 @@ export default function PurchaseList({ conversionContext, clearConversionContext
         <PurchaseFormModal
           isOpen={showFormModal}
           initialData={selectedPurchase || conversionContext?.data || null}
+          isConversion={!!conversionContext}
           onClose={() => {
             setShowFormModal(false);
             setSelectedPurchase(null);

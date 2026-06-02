@@ -93,7 +93,7 @@ export default function PurchaseOrderList({ onConvertToPurchase }) {
 
   const tableHeaders = [
     "Series", "Doc #", "Doc Date", "Vendor Name", "State", 
-    "Mobile", "Ref #", "Ref Date", "Amount", "Action"
+    "Mobile", "Amount", "Action"
   ];
 
   const renderRow = (item, idx) => (
@@ -101,11 +101,9 @@ export default function PurchaseOrderList({ onConvertToPurchase }) {
       <td className="px-4 py-3 text-center text-[11px] text-slate-500 whitespace-nowrap">{item.series || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-sky-600 font-bold whitespace-nowrap">{item.docNo || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{item.docDate || '-'}</td>
-      <td className="px-4 py-3 text-left text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendorName || '-'}</td>
+      <td className="px-4 py-3 text-center text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendorName || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.state || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.mobile || '-'}</td>
-      <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.refNo || '-'}</td>
-      <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.refDate || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-emerald-600 font-bold whitespace-nowrap">₹{Number(item.amount || 0).toLocaleString('en-IN')}</td>
       <td className="px-4 py-3 text-center text-xs whitespace-nowrap flex items-center justify-center gap-2">
         <button onClick={() => onConvertToPurchase?.(item)} className="p-1 bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white rounded transition shadow-sm" title="Material Received">

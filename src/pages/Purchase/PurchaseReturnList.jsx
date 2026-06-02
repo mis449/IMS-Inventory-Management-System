@@ -11,6 +11,7 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
   
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
+  const [selectedPurchaseReturn, setSelectedPurchaseReturn] = useState(null);
   const [activeTab, setActiveTab] = useState('All');
   
   const [filters, setFilters] = useState({
@@ -41,6 +42,11 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
       setShowFormModal(true);
     }
   }, [conversionContext]);
+  const handleView = (item) => {
+    setSelectedPurchaseReturn(item);
+    setShowFormModal(true);
+  };
+
 
   const handleClearFilters = () => {
     setFilters({ searchQuery: '' });
@@ -106,7 +112,7 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
     <tr key={item.id || idx} className="hover:bg-rose-50/25 transition-colors border-b border-slate-100">
       <td className="px-4 py-3 text-center text-xs text-rose-600 font-bold whitespace-nowrap">{item.returnNo || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{item.date || '-'}</td>
-      <td className="px-4 py-3 text-left text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendor || '-'}</td>
+      <td className="px-4 py-3 text-center text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendor || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.mobile || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.refPurchase || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-emerald-600 font-bold whitespace-nowrap">₹{Number(item.amount || 0).toLocaleString('en-IN')}</td>
@@ -116,7 +122,7 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
         </span>
       </td>
       <td className="px-4 py-3 text-center text-xs whitespace-nowrap flex items-center justify-center gap-2">
-        <button className="p-1 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded transition shadow-sm" title="View/Edit">
+        <button onClick={() => handleView(item)} className="p-1 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded transition shadow-sm" title="View/Edit">
           <Eye size={14} />
         </button>
         <button onClick={() => handleDelete(item.id)} className="p-1 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded transition shadow-sm" title="Delete">
@@ -222,13 +228,24 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
       {showFormModal && (
         <PurchaseReturnFormModal
           isOpen={showFormModal}
-          onClose={() => { setShowFormModal(false); clearConversionContext?.(); }}
-          initialData={conversionContext?.data || null}
+          onClose={() => { 
+            setShowFormModal(false); 
+            setSelectedPurchaseReturn(null);
+            clearConversionContext?.(); 
+          }}
+          initialData={selectedPurchaseReturn || conversionContext?.data || null}
+          isConversion={!!conversionContext}
           onSave={(newReturn) => {
-            setPurchaseReturns(prev => [...prev, newReturn]);
+            if (selectedPurchaseReturn) {
+              setPurchaseReturns(prev => prev.map(p => p.id === selectedPurchaseReturn.id ? { ...newReturn, id: selectedPurchaseReturn.id } : p));
+              toast.success('Purchase Return updated');
+            } else {
+              setPurchaseReturns(prev => [...prev, newReturn]);
+              toast.success('Purchase Return saved');
+            }
             setShowFormModal(false);
+            setSelectedPurchaseReturn(null);
             clearConversionContext?.();
-            toast.success('Purchase Return saved');
           }}
         />
       )}

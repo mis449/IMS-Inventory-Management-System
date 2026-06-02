@@ -12,11 +12,13 @@ import OtherInformationTab from '../../components/OtherInformationTab';
 import CatalogModal from '../QuotationForm/CatalogModal';
 import { Printer, UploadCloud, MessageSquare, StickyNote, Activity } from 'lucide-react';
 
-export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData }) {
+export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData, isConversion = false }) {
   const [activeTab, setActiveTab] = useState('ItemLines');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
+  const [isPrintPreviewOpen, setIsPrintPreviewOpen] = useState(false);
+  const [printOrientation, setPrintOrientation] = useState('Portrait');
   const [purchaseStatus, setPurchaseStatus] = useState('Active');
   const [supplyStatus, setSupplyStatus] = useState('-');
   
@@ -36,6 +38,11 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
   const [basicInfo, setBasicInfo] = useState({
     vendor: '',
     address: '',
+    areaPinCode: '',
+    cityState: '',
+    state: '',
+    email: '',
+    mobile: '',
     validityDate: '',
     priceList: 'Standard',
     paymentTerms: 'Net 30'
@@ -63,8 +70,10 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
 
   useEffect(() => {
     if (initialData) {
-      if (initialData.vendorName || (initialData.details && initialData.details.basicInfo)) {
-        setBasicInfo(prev => ({ ...prev, vendor: initialData.vendorName || initialData.details.basicInfo.vendor }));
+      if (initialData.details && initialData.details.basicInfo) {
+        setBasicInfo(initialData.details.basicInfo);
+      } else if (initialData.vendorName) {
+        setBasicInfo(prev => ({ ...prev, vendor: initialData.vendorName }));
       }
       if (initialData.details?.items) {
         setItems(initialData.details.items.map(item => ({...item, id: Date.now() + Math.random()})));
@@ -84,7 +93,7 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
       setPurchaseStatus(initialData.status === 'Draft' ? 'Active' : initialData.status || 'Active');
       setSupplyStatus(initialData.supplyStatus || '-');
     } else {
-        setBasicInfo({ vendor: '', address: '', validityDate: '', priceList: 'Standard', paymentTerms: 'Net 30' });
+        setBasicInfo({ vendor: '', address: '', areaPinCode: '', cityState: '', state: '', email: '', mobile: '', validityDate: '', priceList: 'Standard', paymentTerms: 'Net 30' });
         setItems([getEmptyItem()]);
         setOtherInfo({ internalNotes: '' });
         setNotes({ remarks: '', termsAndConditions: '' });
@@ -188,6 +197,11 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
         docNo: initialData && initialData.docNo ? initialData.docNo : `PR-${Math.floor(1000 + Math.random() * 9000)}`,
         docDate: initialData && initialData.docDate ? initialData.docDate : new Date().toISOString().split('T')[0],
         vendor: basicInfo.vendor,
+        vendorName: basicInfo.vendor,
+        state: basicInfo.state || '',
+        mobile: basicInfo.mobile || '',
+        referenceNumber: otherInfo.referenceNumber || '',
+        referenceDate: otherInfo.expectedDeliveryDate || '',
         amount: summary.totalAmount,
         status: purchaseStatus,
         supplyStatus: supplyStatus,
@@ -196,7 +210,7 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
         details: { basicInfo, items, otherInfo, notes, summary }
       };
       let saved;
-      if (initialData && initialData.id) {
+      if (initialData && initialData.id && !isConversion) {
         saved = await updatePurchase(initialData.id, data);
       } else {
         saved = await createPurchase(data);
@@ -214,9 +228,9 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
     <ModalForm
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData && initialData.id ? "Edit Purchase" : (initialData ? "New Purchase (From PO)" : "New Purchase")}
+      title={initialData && initialData.id && !isConversion ? "Edit Purchase" : (isConversion ? "New Purchase (From PO)" : "New Purchase")}
       onSubmit={handleSubmit}
-      submitText={isSubmitting ? 'Saving...' : (initialData && initialData.id ? 'Update Purchase' : 'Save Purchase')}
+      submitText={isSubmitting ? 'Saving...' : (initialData && initialData.id && !isConversion ? 'Update Purchase' : 'Save Purchase')}
       maxWidth="max-w-6xl"
     >
       <div className="space-y-6">
@@ -224,7 +238,7 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
         {/* Header Actions (Print Preview, Post) */}
         <div className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
           <div className="flex gap-4 items-center">
-            <button type="button" className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"><Printer size={14} /> Print Preview</button>
+            <button type="button" onClick={() => setIsPrintPreviewOpen(true)} className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"><Printer size={14} /> Print Preview</button>
             <span className="text-slate-300">|</span>
             <span className="text-xs font-bold text-slate-700">Mat.Rcvd.Dt</span>
             <input type="date" value={headerInfo.materialRcvdDate} onChange={e => setHeaderInfo({...headerInfo, materialRcvdDate: e.target.value})} className="px-2 py-1 border border-slate-200 rounded text-xs outline-none" />
@@ -311,6 +325,174 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
         toast.success(`Vendor "${vendor.vendorName}" added!`);
       }}
     />
+
+    {/* Print Preview Modal */}
+    {isPrintPreviewOpen && (
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] flex flex-col p-4 md:p-6 overflow-hidden">
+        <style>
+          {`
+            @media print {
+              body * { visibility: hidden; }
+              #purchase-print-area, #purchase-print-area * { visibility: visible; }
+              #purchase-print-area {
+                position: absolute; left: 0; top: 0;
+                width: 100% !important; max-width: 100% !important;
+                margin: 0 !important; padding: 0 !important;
+                box-shadow: none !important; border: none !important;
+              }
+              @page {
+                size: ${printOrientation === 'Horizontal' ? 'landscape' : 'portrait'};
+                margin: 15mm;
+              }
+            }
+          `}
+        </style>
+        
+        <div className={`w-full mx-auto flex flex-col flex-1 min-h-0 mt-10 shadow-2xl rounded-2xl ${
+          printOrientation === 'Horizontal' ? 'max-w-4xl' : 'max-w-3xl'
+        }`}>
+          <div className="w-full bg-white rounded-t-2xl border border-slate-150 p-4 flex justify-between items-center z-50 flex-shrink-0 shadow-md">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Print Preview</span>
+              <select 
+                value={printOrientation} 
+                onChange={e => setPrintOrientation(e.target.value)}
+                className="ml-4 text-xs border border-slate-200 rounded px-2 py-1 outline-none"
+              >
+                <option value="Portrait">Portrait</option>
+                <option value="Horizontal">Landscape</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="bg-sky-600 hover:bg-sky-700 text-white font-bold py-1.5 px-4 rounded-xl text-xs transition shadow-sm"
+              >
+                Print / Save PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPrintPreviewOpen(false)}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1.5 px-4 rounded-xl text-xs transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex-1 w-full overflow-y-auto min-h-0 rounded-b-2xl">
+            <div id="purchase-print-area" className="bg-white p-8 border border-t-0 border-slate-150 text-slate-800 rounded-b-2xl w-full">
+              <div className="flex justify-between items-start border-b-2 border-teal-600 pb-5 mb-6">
+                <div>
+                  <h1 className="text-xl font-black text-teal-850 uppercase tracking-wider">Parekh Gallerium</h1>
+                  <p className="text-[9px] text-slate-400 font-bold tracking-widest uppercase">Premium Inventory Management System</p>
+                  <div className="mt-2 text-xs text-slate-500 space-y-0.5">
+                    <p>VIP Road, Raipur, Chhattisgarh - 492001</p>
+                    <p>Phone: +91 98765 43210 | Email: contact@parekhgallerium.com</p>
+                    <p className="font-semibold text-slate-700">GSTIN: 22AAAAA0000A1Z2</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight text-[26px]">PURCHASE</h2>
+                  <div className="mt-2 text-xs text-slate-500 space-y-1">
+                    <p><span className="font-semibold text-slate-700">Bill No:</span> {headerInfo.billNo || '-'}</p>
+                    <p><span className="font-semibold text-slate-700">Bill Date:</span> {headerInfo.billDate || '-'}</p>
+                    <p><span className="font-semibold text-slate-700">Mat.Rcvd Date:</span> {headerInfo.materialRcvdDate || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-8 mb-6">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Vendor Details</h3>
+                  <p className="font-bold text-slate-800">{basicInfo.vendor || 'N/A'}</p>
+                  {basicInfo.address && <p className="text-xs text-slate-600 mt-1">{basicInfo.address}</p>}
+                  {basicInfo.mobile && <p className="text-xs text-slate-600 mt-1">Ph: {basicInfo.mobile}</p>}
+                  {basicInfo.email && <p className="text-xs text-slate-600 mt-1">Email: {basicInfo.email}</p>}
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col justify-center">
+                   <div className="space-y-2">
+                     <div className="flex justify-between text-xs">
+                       <span className="text-slate-500 font-medium">Payment Terms:</span>
+                       <span className="font-bold text-slate-800">{basicInfo.paymentTerms || '-'}</span>
+                     </div>
+                     <div className="flex justify-between text-xs">
+                       <span className="text-slate-500 font-medium">Supply Status:</span>
+                       <span className="font-bold text-slate-800">{supplyStatus || '-'}</span>
+                     </div>
+                   </div>
+                </div>
+              </div>
+
+              <div className="mb-6 rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-100 text-[10px] uppercase tracking-wider text-slate-600">
+                      <th className="py-2.5 px-4 font-bold border-b border-slate-200">#</th>
+                      <th className="py-2.5 px-4 font-bold border-b border-slate-200">Item Description</th>
+                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Qty</th>
+                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Unit Price</th>
+                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Disc %</th>
+                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Tax %</th>
+                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Net Amt</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-xs">
+                    {items.filter(i => i.itemCode || i.description).map((item, idx) => (
+                      <tr key={idx} className="border-b border-slate-100 last:border-0">
+                        <td className="py-2 px-4 text-slate-500">{idx + 1}</td>
+                        <td className="py-2 px-4">
+                          <p className="font-bold text-slate-800">{item.itemCode}</p>
+                          <p className="text-slate-500 text-[10px]">{item.description}</p>
+                        </td>
+                        <td className="py-2 px-4 text-right font-medium text-slate-700">{item.quantity}</td>
+                        <td className="py-2 px-4 text-right text-slate-600">₹{Number(item.unitPrice || 0).toLocaleString('en-IN')}</td>
+                        <td className="py-2 px-4 text-right text-slate-600">{item.discountPercent || 0}%</td>
+                        <td className="py-2 px-4 text-right text-slate-600">{item.taxPercent || 0}%</td>
+                        <td className="py-2 px-4 text-right font-bold text-slate-800">₹{Number(item.netAmount || 0).toLocaleString('en-IN')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-end mb-8">
+                <div className="w-64 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Gross Amount:</span>
+                    <span>₹{summary.grossAmount?.toLocaleString('en-IN') || '0'}</span>
+                  </div>
+                  <div className="flex justify-between text-rose-600">
+                    <span>Discount:</span>
+                    <span>- ₹{summary.discountAmount?.toLocaleString('en-IN') || '0'}</span>
+                  </div>
+                  <div className="flex justify-between text-sky-600">
+                    <span>Tax:</span>
+                    <span>+ ₹{summary.taxAmount?.toLocaleString('en-IN') || '0'}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 border-b border-slate-200 pb-2">
+                    <span>Round Off:</span>
+                    <span>{summary.roundOffAmount > 0 ? '+' : ''}{summary.roundOffAmount?.toLocaleString('en-IN') || '0'}</span>
+                  </div>
+                  <div className="flex justify-between font-black text-sm text-slate-800 pt-1">
+                    <span>Total Amount:</span>
+                    <span>₹{summary.totalAmount?.toLocaleString('en-IN') || '0'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {notes.termsAndConditions && (
+                <div className="mt-8 border-t border-slate-200 pt-6">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Terms & Conditions</h3>
+                  <p className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">{notes.termsAndConditions}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 }

@@ -56,8 +56,8 @@ export default function VendorDetailsSection({
           <input type="text" value={basicInfo.areaPinCode || ''} onChange={(e) => setBasicInfo({...basicInfo, areaPinCode: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm h-[38px] bg-white outline-none" required />
         </div>
         <div className="space-y-1.5">
-          <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">City / State</label>
-          <input type="text" value={basicInfo.cityState || ''} onChange={(e) => setBasicInfo({...basicInfo, cityState: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm h-[38px] bg-white outline-none" />
+          <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">State</label>
+          <input type="text" value={basicInfo.state || ''} onChange={(e) => setBasicInfo({...basicInfo, state: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm h-[38px] bg-white outline-none" placeholder="State" />
         </div>
         <div className="space-y-1.5">
           <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Email</label>
