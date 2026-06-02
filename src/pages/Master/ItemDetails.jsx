@@ -85,7 +85,7 @@ export default function ItemDetails() {
     "Serial No", "Item Code", "Item Name", "Brand", "Category", "Unit Price / MRP"
   ];
 
-  const renderRow = (item, idx) => {
+  const renderRow = ( item, idx) => {
     const globalIdx = (currentPage - 1) * itemsPerPage + idx + 1;
     const priceVal = Number(item.MRP || item.price || 0);
     return (

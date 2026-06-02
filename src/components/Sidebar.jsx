@@ -52,12 +52,16 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/dashboard',           icon: TrendingUp,     label: 'Dashboard' },
     { path: '/create-indent',       icon: FilePlus,       label: 'Inventory Form' },
     { path: '/master',              icon: LayoutGrid,     label: 'Item Details' },
+    { path: '/purchase',            icon: ShoppingCart,   label: 'Purchase' },
+    { path: '/sales',               icon: FileText,       label: 'Sales' },
     { path: '/settings',            icon: Settings,       label: 'Settings' },
   ];
 
   const employeeMenuItems = [
-    { path: '/create-indent', icon: FilePlus,   label: 'Inventory Form' },
-    { path: '/master',        icon: LayoutGrid, label: 'Item Details' },
+    { path: '/create-indent', icon: FilePlus,     label: 'Inventory Form' },
+    { path: '/master',        icon: LayoutGrid,   label: 'Item Details' },
+    { path: '/purchase',      icon: ShoppingCart, label: 'Purchase' },
+    { path: '/sales',         icon: FileText,     label: 'Sales' },
   ];
 
   const menuItems = user?.role?.toUpperCase() === 'ADMIN' ? adminMenuItems : employeeMenuItems;

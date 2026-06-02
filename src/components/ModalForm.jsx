@@ -21,9 +21,13 @@ const ModalForm = ({
   cancelText = 'Cancel',
   maxWidth = 'max-w-2xl',
   zIndex = 'z-[100]',
-  extraFooterAction = null
+  extraFooterAction = null,
+  hideHeader = false,
+  hideFooter = false
 }) => {
   if (!isOpen) return null;
+
+  const uniqueFormId = `premium-modal-form-${Math.random().toString(36).substring(7)}`;
 
   return (
     <div className={`fixed inset-0 lg:left-56 2xl:left-60 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center ${zIndex} p-4 animate-in fade-in duration-200`}>
@@ -32,36 +36,40 @@ const ModalForm = ({
         style={{ maxHeight: '85vh' }}
       >
         {/* Header - Clean with Close Button */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0 z-20">
-          <h2 className="text-sm md:text-base font-bold text-slate-800 uppercase tracking-wider">{title}</h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 hover:bg-slate-50 text-slate-450 hover:text-slate-700 rounded-lg transition-colors"
-            title="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
+        {!hideHeader && (
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0 z-20">
+            <h2 className="text-sm md:text-base font-bold text-slate-800 uppercase tracking-wider">{title}</h2>
+            <button
+              onClick={onClose}
+              className="p-1.5 hover:bg-slate-50 text-slate-450 hover:text-slate-700 rounded-lg transition-colors"
+              title="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
 
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto bg-white min-h-0 z-10">
           <div className="px-6 py-5">
-            <form id="premium-modal-form" onSubmit={onSubmit} className="space-y-4 text-left">
+            <form id={uniqueFormId} onSubmit={onSubmit} className="space-y-4 text-left">
               {children}
             </form>
           </div>
         </div>
 
         {/* Standardized Footer Buttons */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0 z-20">
-          <FormActionButtons
-            onCancel={onClose}
-            cancelText={cancelText}
-            submitText={submitText}
-            className="w-full"
-            formId="premium-modal-form"
-          />
-        </div>
+        {!hideFooter && (
+          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0 z-20">
+            <FormActionButtons
+              onCancel={onClose}
+              cancelText={cancelText}
+              submitText={submitText}
+              className="w-full"
+              formId={uniqueFormId}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,163 @@
+import React from 'react';
+import { Plus, Trash2, FileText } from 'lucide-react';
+import SearchableDropdown from '../SearchableDropdown';
+
+export default function ItemLinesTable({
+  items,
+  inventoryItems,
+  handleItemChange,
+  handleItemCodeSelect,
+  removeItemLine,
+  addItemLine,
+  addSection,
+  addSubSection,
+  setIsCatalogOpen,
+  showStatus = false
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2 mb-2">
+         <button type="button" onClick={addItemLine} className="text-xs font-bold bg-sky-50 text-sky-600 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-sky-100"><Plus size={14}/> Add Item Line</button>
+         <button type="button" onClick={addSection} className="text-xs font-bold bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-slate-100 border border-slate-200"><Plus size={14}/> Add Section</button>
+         <button type="button" onClick={addSubSection} className="text-xs font-bold bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-slate-100 border border-slate-200"><Plus size={14}/> Add Sub-Section</button>
+         <button type="button" onClick={() => setIsCatalogOpen(true)} className="text-xs font-bold bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-slate-100 border border-slate-200 shadow-sm"><FileText size={14}/> Catalog</button>
+      </div>
+
+      {/* Header */}
+      <div className={`hidden md:grid gap-2 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center bg-slate-50 py-2 rounded-lg ${showStatus ? 'grid-cols-[repeat(14,minmax(0,1fr))]' : 'grid-cols-12'}`}>
+        <div className="col-span-2 text-left">Item Code</div>
+        {showStatus ? (
+          <>
+            <div className="col-span-2 text-left">Description</div>
+            <div className="col-span-1">Qty</div>
+            <div className="col-span-1">Act Disp</div>
+            <div className="col-span-1">Rem Qty</div>
+            <div className="col-span-1">Unit Price</div>
+            <div className="col-span-1">Disc %</div>
+            <div className="col-span-1">Tax %</div>
+            <div className="col-span-1 text-right">Net Amt</div>
+            <div className="col-span-2 text-center">Status</div>
+            <div className="col-span-1">Action</div>
+          </>
+        ) : (
+          <>
+            <div className="col-span-3 text-left">Description</div>
+            <div className="col-span-1">Qty</div>
+            <div className="col-span-2">Unit Price</div>
+            <div className="col-span-1">Disc %</div>
+            <div className="col-span-1">Tax %</div>
+            <div className="col-span-1 text-right">Net Amt</div>
+            <div className="col-span-1">Action</div>
+          </>
+        )}
+      </div>
+
+      {items.map((item, index) => {
+        if (item.type === 'section' || item.type === 'subsection') {
+          const isSub = item.type === 'subsection';
+          return (
+            <div key={item.id} className={`flex items-center gap-2 p-2 md:px-2 md:py-3 rounded-xl md:rounded-none md:border-b shadow-sm md:shadow-none bg-white border border-slate-100 ${isSub ? 'ml-4 border-l-2 border-l-slate-300' : 'border-l-4 border-l-sky-500 bg-sky-50/40'}`}>
+              <div className="flex-1 pl-2">
+                <input type="text" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className={`w-full bg-transparent outline-none font-bold placeholder-slate-400 ${isSub ? 'text-slate-600 text-xs' : 'text-sky-800 text-sm'}`} placeholder={isSub ? "Enter Sub-Section Title..." : "Enter Section Title..."} />
+              </div>
+              <button type="button" onClick={() => removeItemLine(item.id)} className="p-1.5 text-red-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          );
+        }
+
+        const rowGross = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
+        const rowDiscount = rowGross * ((Number(item.discountPercent) || 0) / 100);
+        const afterDiscount = rowGross - rowDiscount;
+        const rowTax = afterDiscount * ((Number(item.taxPercent) || 0) / 100);
+        const net = afterDiscount + rowTax;
+
+        const isCompleted = Number(item.dispatchedQty || 0) >= Number(item.quantity || 0) && Number(item.quantity || 0) > 0;
+        const ordered = Number(item.quantity || 0);
+        const dispatched = Number(item.dispatchedQty || 0);
+        const remaining = Math.max(0, ordered - dispatched);
+
+        return (
+          <div key={item.id} className={`grid gap-2 items-center bg-white border border-slate-100 md:border-b p-3 md:p-2 rounded-xl md:rounded-none shadow-sm md:shadow-none ${showStatus ? 'grid-cols-[repeat(14,minmax(0,1fr))]' : 'grid-cols-12'}`}>
+            <div className="col-span-2 space-y-1">
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Item Code</div>
+              <SearchableDropdown
+                options={inventoryItems.map(i => ({ value: i.ItemCode || i.code, label: `${i.ItemCode || i.code} - ${i.ItemName || i.name}` }))}
+                value={item.itemCode}
+                onChange={(val) => handleItemCodeSelect(val, item.id)}
+                renderSelected={(opt) => opt.value}
+                placeholder="Search Code"
+                className="w-full"
+                height="h-[30px]"
+                rounded="rounded"
+              />
+            </div>
+            <div className={`${showStatus ? 'col-span-2' : 'col-span-3'} space-y-1`}>
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Description</div>
+              <input type="text" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none" placeholder="Description" />
+            </div>
+            
+            <div className="col-span-1 space-y-1 text-center">
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Qty</div>
+              <input type="number" min="1" value={item.quantity} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} className="w-full border border-sky-200 text-sky-700 font-bold text-xs px-2 py-1.5 rounded outline-none text-center" />
+            </div>
+
+            {/* Act Disp and Rem Qty Columns */}
+            {showStatus && (
+              <>
+                <div className="col-span-1 space-y-1 text-center">
+                  <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Act Disp</div>
+                  <div className="w-full bg-slate-50 border border-slate-200 text-xs px-1 py-1 rounded text-center text-sky-700 font-bold select-none">{dispatched}</div>
+                </div>
+                <div className="col-span-1 space-y-1 text-center">
+                  <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Rem Qty</div>
+                  <div className="w-full bg-slate-50 border border-slate-200 text-xs px-1 py-1 rounded text-center text-amber-600 font-bold select-none">{remaining}</div>
+                </div>
+              </>
+            )}
+
+            <div className={`${showStatus ? 'col-span-1' : 'col-span-2'} space-y-1 text-center`}>
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Unit Price</div>
+              <input type="number" value={item.unitPrice} onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none text-center" />
+            </div>
+            <div className="col-span-1 space-y-1 text-center">
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Disc %</div>
+              <input type="number" value={item.discountPercent} onChange={(e) => handleItemChange(item.id, 'discountPercent', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none text-center" />
+            </div>
+            <div className="col-span-1 space-y-1 text-center">
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Tax %</div>
+              <input type="number" value={item.taxPercent} onChange={(e) => handleItemChange(item.id, 'taxPercent', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none text-center" />
+            </div>
+            <div className="col-span-1 text-right font-bold text-emerald-600 text-xs pr-2">
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase text-left">Net Amount</div>
+              {net.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            </div>
+            
+            {/* Status Column */}
+            {showStatus && (
+              <div className="col-span-2 space-y-1 text-center flex flex-col items-center justify-center">
+                <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Status</div>
+                {isCompleted ? (
+                  <span className="px-1.5 py-0.5 rounded text-[8px] uppercase font-black bg-emerald-100 text-emerald-700 border border-emerald-250">
+                    Completed
+                  </span>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded text-[8px] uppercase font-black bg-amber-100 text-amber-700 border border-amber-250">
+                    Pending
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div className="col-span-1 flex justify-center">
+              <button type="button" onClick={() => removeItemLine(item.id)} disabled={items.length === 1} className="p-1.5 text-red-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors disabled:opacity-30">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

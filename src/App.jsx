@@ -8,6 +8,8 @@ import ItemDetails from './pages/Master/ItemDetails';
 import InventoryForm from './pages/InventoryForm/InventoryForm';
 import InventoryHistory from './pages/InventoryForm/InventoryHistory';
 import Dasboard from './pages/Dashboard/Dasboard';
+import SalesModule from './pages/Sales/SalesModule';
+import PurchaseModule from './pages/Purchase/PurchaseModule';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
@@ -50,6 +52,8 @@ function App() {
             <Route path="master" element={<ItemDetails />} />
             <Route path="create-indent" element={<InventoryForm />} />
             <Route path="indent-history" element={<InventoryHistory />} />
+            <Route path="sales" element={<SalesModule />} />
+            <Route path="purchase" element={<PurchaseModule />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

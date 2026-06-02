@@ -19,7 +19,8 @@ const SearchableDropdown = ({
   placeholder = "Select option...", 
   className = "",
   height = "h-[38px]",
-  rounded = "rounded-xl"
+  rounded = "rounded-xl",
+  renderSelected
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -78,7 +79,7 @@ const SearchableDropdown = ({
         className={`w-full bg-white border border-slate-200 ${rounded} px-3 py-2 flex justify-between items-center cursor-pointer hover:border-sky-500 transition-all ${height} shadow-sm group outline-none focus:ring-4 focus:ring-sky-500/10 active:scale-[0.98]`}
       >
         <span className={`text-xs md:text-sm truncate ${selectedOption ? 'text-slate-800 font-semibold' : 'text-slate-400'}`}>
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedOption ? (renderSelected ? renderSelected(selectedOption) : selectedOption.label) : placeholder}
         </span>
         <ChevronDown
           size={16}

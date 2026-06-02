@@ -8,6 +8,98 @@ const useDataStore = create((set, get) => ({
   error: null,
   transactions: [],
   inventorySummary: [],
+  customers: [],
+  vendors: [],
+
+  // Fetch customers from local storage
+  fetchCustomers: () => {
+    try {
+      const stored = localStorage.getItem('customers');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        let customersData = parsed.map(c => typeof c === 'string' ? { name: c } : c);
+        
+        // Filter out dummy default customers if they have no other data attached
+        const dummyNames = ['Individual', 'Corporate', 'Walk-in Customer'];
+        customersData = customersData.filter(c => {
+           if (dummyNames.includes(c.name)) {
+              return Object.keys(c).length > 1; // Keep if user added an address/mobile to it
+           }
+           return true;
+        });
+        
+        set({ customers: customersData });
+      } else {
+        set({ customers: [] });
+      }
+    } catch (e) {
+      console.error('Error fetching customers:', e);
+    }
+  },
+
+  // Fetch vendors from local storage
+  fetchVendors: () => {
+    try {
+      const stored = localStorage.getItem('vendors');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        let vendorsData = parsed.map(v => typeof v === 'string' ? { name: v } : v);
+        set({ vendors: vendorsData });
+      } else {
+        set({ vendors: [] });
+      }
+    } catch (e) {
+      console.error('Error fetching vendors:', e);
+    }
+  },
+
+  // Add a new customer to local storage
+  addCustomer: (customerData) => {
+    if (!customerData) return;
+    const custName = customerData.company || customerData.customer || customerData.name || 'New Customer';
+    
+    const current = get().customers;
+    const existingIndex = current.findIndex(c => c.name === custName);
+    
+    const newCustomer = {
+      ...customerData,
+      name: custName,
+    };
+
+    let updated = [...current];
+    if (existingIndex >= 0) {
+      updated[existingIndex] = newCustomer;
+    } else {
+      updated = [...current, newCustomer];
+    }
+    
+    localStorage.setItem('customers', JSON.stringify(updated));
+    set({ customers: updated });
+  },
+
+  // Add a new vendor to local storage
+  addVendor: (vendorData) => {
+    if (!vendorData) return;
+    const vendorName = vendorData.company || vendorData.vendorName || vendorData.name || 'New Vendor';
+    
+    const current = get().vendors;
+    const existingIndex = current.findIndex(v => v.name === vendorName);
+    
+    const newVendor = {
+      ...vendorData,
+      name: vendorName,
+    };
+
+    let updated = [...current];
+    if (existingIndex >= 0) {
+      updated[existingIndex] = newVendor;
+    } else {
+      updated = [...current, newVendor];
+    }
+    
+    localStorage.setItem('vendors', JSON.stringify(updated));
+    set({ vendors: updated });
+  },
 
   // Fetch items from the merged API endpoint
   fetchItems: async (force = false) => {
