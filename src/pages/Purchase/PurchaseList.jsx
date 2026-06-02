@@ -145,9 +145,36 @@ export default function PurchaseList({ conversionContext, clearConversionContext
           <span className="text-slate-700 font-medium">{item.docDate || '-'}</span>
         </div>
         <div>
+          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">State</span>
+          <span className="text-slate-700 font-medium">{item.state || '-'}</span>
+        </div>
+        <div>
+          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Mobile</span>
+          <span className="text-slate-700 font-medium">{item.mobile || '-'}</span>
+        </div>
+        <div>
+          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Bill #</span>
+          <span className="text-slate-700 font-medium">{item.billNo || '-'}</span>
+        </div>
+        <div>
+          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Bill Date</span>
+          <span className="text-slate-700 font-medium">{item.billDate || '-'}</span>
+        </div>
+        <div>
           <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Amount</span>
           <span className="text-emerald-600 font-bold">₹{Number(item.amount || 0).toLocaleString('en-IN')}</span>
         </div>
+      </div>
+      <div className="flex justify-end gap-2 pt-2 border-t border-slate-50 mt-2">
+        <button onClick={() => onCreatePurchaseReturn?.(item)} className="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white rounded transition shadow-sm" title="Return">
+          <ArrowLeftRight size={14} />
+        </button>
+        <button onClick={() => handleView(item)} className="p-1.5 bg-teal-50 text-teal-600 hover:bg-teal-500 hover:text-white rounded transition shadow-sm" title="View/Edit">
+          <Eye size={14} />
+        </button>
+        <button onClick={() => handleDelete(item.id)} className="p-1.5 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded transition shadow-sm" title="Delete">
+          <Trash2 size={14} />
+        </button>
       </div>
     </div>
   );

@@ -79,8 +79,8 @@ export default function ItemLinesTable({
         const remaining = Math.max(0, ordered - dispatched);
 
         return (
-          <div key={item.id} className={`grid gap-2 items-center bg-white border border-slate-100 md:border-b p-3 md:p-2 rounded-xl md:rounded-none shadow-sm md:shadow-none ${showStatus ? 'grid-cols-[repeat(14,minmax(0,1fr))]' : 'grid-cols-12'}`}>
-            <div className="col-span-2 space-y-1">
+          <div key={item.id} className={`grid gap-3 md:gap-2 items-end bg-white border border-slate-100 md:border-b p-4 md:p-2 rounded-xl md:rounded-none shadow-sm md:shadow-none grid-cols-2 ${showStatus ? 'md:grid-cols-[repeat(14,minmax(0,1fr))]' : 'md:grid-cols-12'}`}>
+            <div className="col-span-2 md:col-span-2 space-y-1">
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Item Code</div>
               <SearchableDropdown
                 options={inventoryItems.map(i => ({ value: i.ItemCode || i.code, label: `${i.ItemCode || i.code} - ${i.ItemName || i.name}` }))}
@@ -93,12 +93,12 @@ export default function ItemLinesTable({
                 rounded="rounded"
               />
             </div>
-            <div className={`${showStatus ? 'col-span-2' : 'col-span-3'} space-y-1`}>
+            <div className={`col-span-2 ${showStatus ? 'md:col-span-2' : 'md:col-span-3'} space-y-1`}>
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Description</div>
               <input type="text" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none" placeholder="Description" />
             </div>
             
-            <div className="col-span-1 space-y-1 text-center">
+            <div className="col-span-1 md:col-span-1 space-y-1 text-center md:text-center">
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Qty</div>
               <input type="number" min="1" value={item.quantity} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} className="w-full border border-sky-200 text-sky-700 font-bold text-xs px-2 py-1.5 rounded outline-none text-center" />
             </div>
@@ -106,37 +106,37 @@ export default function ItemLinesTable({
             {/* Act Disp and Rem Qty Columns */}
             {showStatus && (
               <>
-                <div className="col-span-1 space-y-1 text-center">
+                <div className="col-span-1 md:col-span-1 space-y-1 text-center md:text-center">
                   <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Act Disp</div>
                   <div className="w-full bg-slate-50 border border-slate-200 text-xs px-1 py-1 rounded text-center text-sky-700 font-bold select-none">{dispatched}</div>
                 </div>
-                <div className="col-span-1 space-y-1 text-center">
+                <div className="col-span-1 md:col-span-1 space-y-1 text-center md:text-center">
                   <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Rem Qty</div>
                   <div className="w-full bg-slate-50 border border-slate-200 text-xs px-1 py-1 rounded text-center text-amber-600 font-bold select-none">{remaining}</div>
                 </div>
               </>
             )}
 
-            <div className={`${showStatus ? 'col-span-1' : 'col-span-2'} space-y-1 text-center`}>
+            <div className={`col-span-1 ${showStatus ? 'md:col-span-1' : 'md:col-span-2'} space-y-1 text-center md:text-center`}>
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Unit Price</div>
               <input type="number" value={item.unitPrice} onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none text-center" />
             </div>
-            <div className="col-span-1 space-y-1 text-center">
+            <div className="col-span-1 md:col-span-1 space-y-1 text-center md:text-center">
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Disc %</div>
               <input type="number" value={item.discountPercent} onChange={(e) => handleItemChange(item.id, 'discountPercent', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none text-center" />
             </div>
-            <div className="col-span-1 space-y-1 text-center">
+            <div className="col-span-1 md:col-span-1 space-y-1 text-center md:text-center">
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Tax %</div>
               <input type="number" value={item.taxPercent} onChange={(e) => handleItemChange(item.id, 'taxPercent', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none text-center" />
             </div>
-            <div className="col-span-1 text-right font-bold text-emerald-600 text-xs pr-2">
-              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase text-left">Net Amount</div>
-              {net.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            <div className="col-span-1 md:col-span-1 text-left md:text-right font-bold text-emerald-600 text-xs md:pr-2 pt-1 md:pt-0">
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Net Amount</div>
+              ₹{net.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
             </div>
             
             {/* Status Column */}
             {showStatus && (
-              <div className="col-span-2 space-y-1 text-center flex flex-col items-center justify-center">
+              <div className="col-span-1 md:col-span-2 space-y-1 text-left md:text-center flex flex-col items-start md:items-center justify-center pt-1 md:pt-0">
                 <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Status</div>
                 {isCompleted ? (
                   <span className="px-1.5 py-0.5 rounded text-[8px] uppercase font-black bg-emerald-100 text-emerald-700 border border-emerald-250">
@@ -150,7 +150,7 @@ export default function ItemLinesTable({
               </div>
             )}
 
-            <div className="col-span-1 flex justify-center">
+            <div className="col-span-2 md:col-span-1 flex justify-end md:justify-center pt-2 md:pt-0 border-t border-slate-100 md:border-0 mt-2 md:mt-0">
               <button type="button" onClick={() => removeItemLine(item.id)} disabled={items.length === 1} className="p-1.5 text-red-400 hover:text-red-650 hover:bg-red-50 rounded transition-colors disabled:opacity-30">
                 <Trash2 size={14} />
               </button>

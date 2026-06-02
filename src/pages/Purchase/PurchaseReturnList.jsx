@@ -148,9 +148,31 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
           <span className="text-slate-700 font-medium">{item.date || '-'}</span>
         </div>
         <div>
+          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Mobile</span>
+          <span className="text-slate-700 font-medium">{item.mobile || '-'}</span>
+        </div>
+        <div>
+          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Ref Purchase</span>
+          <span className="text-slate-700 font-medium">{item.refPurchase || '-'}</span>
+        </div>
+        <div>
           <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Amount</span>
           <span className="text-emerald-600 font-bold">₹{Number(item.amount || 0).toLocaleString('en-IN')}</span>
         </div>
+        <div className="col-span-2">
+          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Status</span>
+          <span className={`px-1.5 py-0.5 rounded text-[8px] uppercase font-bold inline-block ${getStatusColor(item.status)}`}>
+            {item.status || 'Draft'}
+          </span>
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 pt-2 border-t border-slate-50 mt-2">
+        <button onClick={() => handleView(item)} className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white rounded transition shadow-sm" title="View/Edit">
+          <Eye size={14} />
+        </button>
+        <button onClick={() => handleDelete(item.id)} className="p-1.5 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded transition shadow-sm" title="Delete">
+          <Trash2 size={14} />
+        </button>
       </div>
     </div>
   );

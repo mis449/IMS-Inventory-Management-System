@@ -6,12 +6,12 @@ import { XCircle, Save, Check } from 'lucide-react';
  */
 export const TabSwitcher = ({ activeTab, onTabChange, tabs }) => {
   return (
-    <div className="flex gap-1 p-1 bg-slate-100/80 rounded-xl w-full lg:w-max flex-shrink-0 mb-4 border border-slate-200/50 shadow-inner">
+    <div className="flex flex-wrap md:flex-nowrap gap-2 md:gap-1 p-1 bg-slate-100/80 rounded-xl w-full lg:w-max mb-4 border border-slate-200/50 shadow-inner">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`flex-1 lg:flex-none py-2 px-5 transition-all duration-300 text-xs md:text-sm rounded-lg whitespace-nowrap capitalize flex items-center justify-center gap-2 font-semibold ${
+          className={`flex-none py-2 px-4 transition-all duration-300 text-xs md:text-sm rounded-lg whitespace-nowrap capitalize flex items-center justify-center gap-2 font-semibold ${
             activeTab === tab.id 
               ? 'bg-white text-sky-600 shadow-sm scale-[1.01] transform' 
               : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'

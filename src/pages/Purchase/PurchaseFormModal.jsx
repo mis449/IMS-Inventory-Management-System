@@ -236,20 +236,28 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
       <div className="space-y-6">
         
         {/* Header Actions (Print Preview, Post) */}
-        <div className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
-          <div className="flex gap-4 items-center">
-            <button type="button" onClick={() => setIsPrintPreviewOpen(true)} className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"><Printer size={14} /> Print Preview</button>
-            <span className="text-slate-300">|</span>
-            <span className="text-xs font-bold text-slate-700">Mat.Rcvd.Dt</span>
-            <input type="date" value={headerInfo.materialRcvdDate} onChange={e => setHeaderInfo({...headerInfo, materialRcvdDate: e.target.value})} className="px-2 py-1 border border-slate-200 rounded text-xs outline-none" />
-            <span className="text-xs font-bold text-slate-700">Bill #</span>
-            <input type="text" value={headerInfo.billNo} onChange={e => setHeaderInfo({...headerInfo, billNo: e.target.value})} className="px-2 py-1 border border-slate-200 rounded text-xs outline-none w-24" placeholder="Bill No" />
-            <span className="text-xs font-bold text-slate-700">Vendor Bill #</span>
-            <input type="text" value={headerInfo.vendorBillNo} onChange={e => setHeaderInfo({...headerInfo, vendorBillNo: e.target.value})} className="px-2 py-1 border border-slate-200 rounded text-xs outline-none w-24" placeholder="Vendor Bill" />
-            <span className="text-xs font-bold text-slate-700">Bill Date</span>
-            <input type="date" value={headerInfo.billDate} onChange={e => setHeaderInfo({...headerInfo, billDate: e.target.value})} className="px-2 py-1 border border-slate-200 rounded text-xs outline-none" />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-50 p-3 md:p-2 rounded-lg border border-slate-100 gap-3 md:gap-0">
+          <div className="flex flex-wrap md:flex-nowrap gap-3 md:gap-4 items-center w-full md:w-auto">
+            <button type="button" onClick={() => setIsPrintPreviewOpen(true)} className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 w-full md:w-auto mb-2 md:mb-0"><Printer size={14} /> Print Preview</button>
+            <div className="hidden md:block text-slate-300">|</div>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-1 md:gap-2 w-[45%] md:w-auto">
+              <span className="text-[10px] md:text-xs font-bold text-slate-700 uppercase md:normal-case">Mat.Rcvd.Dt</span>
+              <input type="date" value={headerInfo.materialRcvdDate} onChange={e => setHeaderInfo({...headerInfo, materialRcvdDate: e.target.value})} className="px-2 py-1.5 md:py-1 border border-slate-200 rounded text-xs outline-none w-full md:w-auto" />
+            </div>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-1 md:gap-2 w-[45%] md:w-auto">
+              <span className="text-[10px] md:text-xs font-bold text-slate-700 uppercase md:normal-case">Bill #</span>
+              <input type="text" value={headerInfo.billNo} onChange={e => setHeaderInfo({...headerInfo, billNo: e.target.value})} className="px-2 py-1.5 md:py-1 border border-slate-200 rounded text-xs outline-none w-full md:w-24" placeholder="Bill No" />
+            </div>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-1 md:gap-2 w-[45%] md:w-auto">
+              <span className="text-[10px] md:text-xs font-bold text-slate-700 uppercase md:normal-case">Vendor Bill #</span>
+              <input type="text" value={headerInfo.vendorBillNo} onChange={e => setHeaderInfo({...headerInfo, vendorBillNo: e.target.value})} className="px-2 py-1.5 md:py-1 border border-slate-200 rounded text-xs outline-none w-full md:w-24" placeholder="Vendor Bill" />
+            </div>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-1 md:gap-2 w-[45%] md:w-auto">
+              <span className="text-[10px] md:text-xs font-bold text-slate-700 uppercase md:normal-case">Bill Date</span>
+              <input type="date" value={headerInfo.billDate} onChange={e => setHeaderInfo({...headerInfo, billDate: e.target.value})} className="px-2 py-1.5 md:py-1 border border-slate-200 rounded text-xs outline-none w-full md:w-auto" />
+            </div>
           </div>
-          <button type="button" className="text-xs font-bold bg-white text-teal-600 border border-teal-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-teal-50 transition shadow-sm">
+          <button type="button" className="text-xs font-bold bg-white text-teal-600 border border-teal-200 px-3 py-2 md:py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:bg-teal-50 transition shadow-sm w-full md:w-auto mt-2 md:mt-0">
             <UploadCloud size={14} /> Post In Account
           </button>
         </div>
