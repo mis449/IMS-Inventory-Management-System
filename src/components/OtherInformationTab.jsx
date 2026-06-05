@@ -93,6 +93,32 @@ export default function OtherInformationTab({ otherInfo, setOtherInfo, quotation
         />
       </div>
 
+      {/* Architect Name */}
+      <div className="space-y-1.5">
+        <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">
+          Architect Name
+        </label>
+        <input 
+          type="text" 
+          value={info.architectName || ''} 
+          onChange={(e) => handleChange('architectName', e.target.value)} 
+          className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm h-[38px] bg-white outline-none shadow-sm transition-all" 
+        />
+      </div>
+
+      {/* Sales Number */}
+      <div className="space-y-1.5">
+        <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">
+          Sales Number
+        </label>
+        <input 
+          type="text" 
+          value={info.salesNumber || ''} 
+          onChange={(e) => handleChange('salesNumber', e.target.value)} 
+          className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm h-[38px] bg-white outline-none shadow-sm transition-all" 
+        />
+      </div>
+
     </div>
   );
 }

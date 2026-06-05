@@ -10,7 +10,7 @@ import ItemLinesTable from '../../components/sales/ItemLinesTable';
 import SummaryCard from '../../components/sales/SummaryCard';
 import OtherInformationTab from '../../components/OtherInformationTab';
 import CatalogModal from '../QuotationForm/CatalogModal';
-import { Printer, UploadCloud, MessageSquare, StickyNote, Activity } from 'lucide-react';
+import { Printer, UploadCloud, MessageSquare, StickyNote, Activity, Image as ImageIcon } from 'lucide-react';
 
 export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData, isConversion = false }) {
   const [activeTab, setActiveTab] = useState('ItemLines');
@@ -409,7 +409,8 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
                   <thead>
                     <tr className="bg-slate-800 text-white font-bold uppercase tracking-widest text-[9px]">
                       <th className="py-2 px-1 text-center w-8">SN</th>
-                      <th className="py-2 px-1 text-left w-[45%]">Product Details</th>
+                      <th className="py-2 px-1 text-center w-12">Image</th>
+                      <th className="py-2 px-1 text-left w-[40%]">Product Details</th>
                       <th className="py-2 px-1 text-center w-12">Qty</th>
                       <th className="py-2 px-1 text-right w-24">Unit Price</th>
                       <th className="py-2 px-1 text-center w-16">Disc %</th>
@@ -425,9 +426,21 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
                       const rowTax = afterDiscount * ((Number(item.taxPercent) || 0) / 100);
                       const netAmt = item.netAmount || (afterDiscount + rowTax);
                       
+                      const matchedInventoryItem = inventoryItems?.find(inv => (inv.ItemCode || inv.code) === item.itemCode);
+                      const imageUrl = item.thumbnail || item.image || (matchedInventoryItem ? (matchedInventoryItem.Thumbnail || matchedInventoryItem.product_image_url) : '');
+
                       return (
                         <tr key={idx} className="border-b border-slate-200 bg-white">
                           <td className="py-2 px-1 text-center text-slate-500 font-medium">{idx + 1}</td>
+                          <td className="py-2 px-1 text-center">
+                            {imageUrl ? (
+                              <img src={imageUrl} alt="product" className="w-10 h-10 object-cover mx-auto rounded border border-slate-200" />
+                            ) : (
+                              <div className="w-10 h-10 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 mx-auto rounded">
+                                 <ImageIcon size={14} />
+                              </div>
+                            )}
+                          </td>
                           <td className="py-2 px-1 text-left">
                             <div className="font-bold text-slate-800">{item.itemCode || '-'}</div>
                             <div className="text-slate-600 capitalize mt-0.5 leading-snug text-justify pr-2">{item.description || '-'}</div>

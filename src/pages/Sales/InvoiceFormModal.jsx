@@ -11,7 +11,8 @@ import FooterActions from '../../components/sales/FooterActions';
 import NewCustomerModal from '../QuotationForm/NewCustomerModal';
 import CatalogModal from '../QuotationForm/CatalogModal';
 import OtherInformationTab from '../../components/OtherInformationTab';
-import { X } from 'lucide-react';
+import PremiumQuotationPrint from '../../components/sales/PremiumQuotationPrint';
+import { X, Image as ImageIcon } from 'lucide-react';
 
 export default function InvoiceFormModal({ isOpen, onClose, onSave, initialData, onCreateSalesReturn }) {
   const [activeTab, setActiveTab] = useState('ItemLines');
@@ -288,23 +289,55 @@ export default function InvoiceFormModal({ isOpen, onClose, onSave, initialData,
               body * {
                 visibility: hidden;
               }
+              
               #invoice-print-area, #invoice-print-area * {
                 visibility: visible;
               }
-              #invoice-print-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100% !important;
-                max-width: 100% !important;
-                margin: 0 !important;
+              
+              /* Make the modal overlay absolute at top left, and let it grow to full height */
+              .fixed.inset-0 {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                height: auto !important;
+                min-height: 100% !important;
+                overflow: visible !important;
+                background: none !important;
                 padding: 0 !important;
+              }
+              
+              /* Let the container grow */
+              .fixed.inset-0 > div {
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
                 box-shadow: none !important;
+                margin: 0 !important;
                 border: none !important;
               }
+              
+              /* Let the print area grow */
+              #invoice-print-area {
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                position: static !important;
+              }
+              
+              /* Hide the control bar */
+              .fixed.inset-0 > div > div:first-child {
+                display: none !important;
+              }
+              
+              .break-after-page {
+                page-break-after: always;
+                break-after: page;
+              }
+              
               @page {
                 size: ${printOrientation === 'Horizontal' ? 'landscape' : 'portrait'};
-                margin: 15mm;
+                margin: 10mm;
               }
             }
           `}
@@ -347,173 +380,17 @@ export default function InvoiceFormModal({ isOpen, onClose, onSave, initialData,
           </div>
           
           {/* Document Sheet Scrollable Area */}
-          <div className="flex-1 w-full overflow-y-auto min-h-0 rounded-b-2xl">
-            <div 
-              id="invoice-print-area"
-              className="bg-white p-8 border border-t-0 border-slate-150 text-slate-800 rounded-b-2xl w-full"
-            >
-              {/* Company Info / Doc Header */}
-              <div className="flex justify-between items-start border-b-2 border-slate-800 pb-6 mb-8">
-                <div>
-                  <h1 className="text-3xl font-black text-slate-900 uppercase tracking-widest">PAREKH GALLERIUM</h1>
-                  <p className="text-[10px] text-sky-700 font-bold tracking-widest uppercase mt-1">Premium Inventory Management System</p>
-                  <div className="mt-3 text-xs text-slate-600 space-y-0.5">
-                    <p>VIP Road, Raipur, Chhattisgarh - 492001</p>
-                    <p>Phone: +91 98765 43210</p>
-                    <p>Email: contact@parekhgallerium.com</p>
-                    <p className="font-bold text-slate-800 mt-1.5">GSTIN: 22AAAAA0000A1Z2</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <h2 className="text-4xl font-light text-slate-400 tracking-widest uppercase mb-4">Invoice</h2>
-                  <div className="text-xs text-slate-600 space-y-1.5">
-                    <p><span className="font-bold text-slate-900 w-24 inline-block">Invoice No:</span> {initialData?.invoiceNo || 'Draft'}</p>
-                    <p><span className="font-bold text-slate-900 w-24 inline-block">Date:</span> {initialData?.date || new Date().toISOString().split('T')[0]}</p>
-                    <p><span className="font-bold text-slate-900 w-24 inline-block">Sales Person:</span> {otherInfo.salesPerson || 'Admin'}</p>
-                    <p><span className="font-bold text-slate-900 w-24 inline-block">Status:</span> <span className="uppercase font-bold text-slate-800">ACTIVE</span></p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Billing Details */}
-              <div className="flex gap-12 mb-10 text-xs">
-                <div className="flex-1">
-                  <h3 className="font-bold text-slate-800 border-b border-slate-300 pb-2 mb-3 uppercase tracking-widest text-[10px]">Bill To</h3>
-                  <div className="space-y-1">
-                    <p className="font-black text-slate-900 text-sm mb-2">{basicInfo.customer || 'Walk-in Customer'}</p>
-                    {basicInfo.address && <p className="text-slate-700">{basicInfo.address}</p>}
-                    {basicInfo.areaPinCode && <p className="text-slate-700"><span className="font-semibold text-slate-500">Area/PIN:</span> {basicInfo.areaPinCode}</p>}
-                    {basicInfo.cityState && <p className="text-slate-700"><span className="font-semibold text-slate-500">City/State:</span> {basicInfo.cityState}</p>}
-                    {basicInfo.mobile && <p className="text-slate-700"><span className="font-semibold text-slate-500">Mobile:</span> {basicInfo.mobile}</p>}
-                    {basicInfo.email && <p className="text-slate-700"><span className="font-semibold text-slate-500">Email:</span> {basicInfo.email}</p>}
-                  </div>
-                </div>
-                
-                <div className="flex-1">
-                  <h3 className="font-bold text-slate-800 border-b border-slate-300 pb-2 mb-3 uppercase tracking-widest text-[10px]">Invoice Details</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500">Validity Date:</span> 
-                      <span className="font-bold text-slate-800">{basicInfo.validityDate || '-'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500">Payment Terms:</span> 
-                      <span className="font-bold text-slate-800">{basicInfo.paymentTerms || '-'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500">Price List:</span> 
-                      <span className="font-bold text-slate-800">{basicInfo.priceList || 'Standard'}</span>
-                    </div>
-                    {otherInfo.customerReference && (
-                      <div className="flex justify-between">
-                        <span className="font-semibold text-slate-500">Cust Reference:</span> 
-                        <span className="font-bold text-slate-800">{otherInfo.customerReference}</span>
-                      </div>
-                    )}
-                    {otherInfo.referenceNumber && (
-                      <div className="flex justify-between">
-                        <span className="font-semibold text-slate-500">Ref Number:</span> 
-                        <span className="font-bold text-slate-800">{otherInfo.referenceNumber}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Product Table */}
-              <div className="mb-8">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-slate-800 text-white font-bold uppercase tracking-widest text-[9px]">
-                      <th className="py-2 px-1 text-center w-8">SN</th>
-                      <th className="py-2 px-1 text-left w-[45%]">Product Details</th>
-                      <th className="py-2 px-1 text-center w-12">Qty</th>
-                      <th className="py-2 px-1 text-right w-24">Unit Price</th>
-                      <th className="py-2 px-1 text-center w-16">Disc %</th>
-                      <th className="py-2 px-1 text-center w-16">Tax %</th>
-                      <th className="py-2 px-1 text-right w-28">Net Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.filter(item => item.itemCode || item.description).map((item, idx) => {
-                      const rowGross = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
-                      const rowDiscount = rowGross * ((Number(item.discountPercent) || 0) / 100);
-                      const afterDiscount = rowGross - rowDiscount;
-                      const rowTax = afterDiscount * ((Number(item.taxPercent) || 0) / 100);
-                      const netAmt = afterDiscount + rowTax;
-                      return (
-                        <tr key={item.id} className="border-b border-slate-200 bg-white">
-                          <td className="py-2 px-1 text-center text-slate-500 font-medium">{idx + 1}</td>
-                          <td className="py-2 px-1 text-left">
-                            <div className="font-bold text-slate-800">{item.itemCode || '-'}</div>
-                            <div className="text-slate-600 capitalize mt-0.5 leading-snug text-justify pr-2">{item.description || '-'}</div>
-                          </td>
-                          <td className="py-2 px-1 text-center font-bold text-slate-800">{item.quantity}</td>
-                          <td className="py-2 px-1 text-right text-slate-700">₹{Number(item.unitPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                          <td className="py-2 px-1 text-center text-slate-500">{item.discountPercent}%</td>
-                          <td className="py-2 px-1 text-center text-slate-500">{item.taxPercent}%</td>
-                          <td className="py-2 px-1 text-right font-black text-slate-900">₹{Number(netAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Notes & Summary */}
-              <div className="flex gap-12 text-xs mb-16">
-                <div className="flex-1 space-y-6">
-                  {notes.remarks && (
-                    <div>
-                      <h4 className="font-bold text-slate-800 uppercase tracking-widest text-[9px] mb-2">Remarks</h4>
-                      <p className="text-slate-600 whitespace-pre-line leading-relaxed">{notes.remarks}</p>
-                    </div>
-                  )}
-                  {(notes.termsAndConditions || notes.additionalNotes) && (
-                    <div>
-                      <h4 className="font-bold text-slate-800 uppercase tracking-widest text-[9px] mb-2">Terms & Conditions</h4>
-                      <p className="text-slate-600 whitespace-pre-line leading-relaxed">{notes.termsAndConditions || notes.additionalNotes}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="w-80 space-y-3">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Gross Amount:</span>
-                    <span className="font-medium">₹{Number(summary.grossAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Discount Amount:</span>
-                    <span className="font-medium">- ₹{Number(summary.discountAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Tax Amount:</span>
-                    <span className="font-medium">+ ₹{Number(summary.taxAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600 border-b border-slate-200 pb-3">
-                    <span>Round Off:</span>
-                    <span className="font-medium">{summary.roundOffAmount >= 0 ? '+' : '-'} ₹{Math.abs(summary.roundOffAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-900 font-black text-base pt-1">
-                    <span>Grand Total:</span>
-                    <span>₹{Number(summary.totalAmount || 0).toLocaleString('en-IN')}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Signature Area */}
-              <div className="flex justify-between items-end mt-16 pt-8 border-t border-slate-100 text-xs">
-                <div>
-                  <p className="text-slate-400">Thank you for your business!</p>
-                </div>
-                <div className="text-right space-y-12">
-                  <p className="font-semibold text-slate-800">For Parekh Gallerium</p>
-                  <div className="border-t border-slate-300 w-44 pt-1 text-center text-slate-450 text-[10px]">
-                    Authorized Signatory
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 w-full overflow-y-auto min-h-0 rounded-b-2xl" id="invoice-print-area">
+            <PremiumQuotationPrint 
+              initialData={initialData}
+              basicInfo={basicInfo}
+              otherInfo={otherInfo}
+              items={items}
+              summary={summary}
+              notes={notes}
+              inventoryItems={inventoryItems}
+              documentTitle="Invoice"
+            />
           </div>
         </div>
       </div>

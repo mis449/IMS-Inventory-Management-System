@@ -39,6 +39,11 @@ export default function ItemDetails() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   // Fetch items on mount
   useEffect(() => {
     fetchItems(true);

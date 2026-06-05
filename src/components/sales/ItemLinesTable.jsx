@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, FileText } from 'lucide-react';
+import { Plus, Trash2, FileText, Image as ImageIcon } from 'lucide-react';
 import SearchableDropdown from '../SearchableDropdown';
 
 export default function ItemLinesTable({
@@ -25,8 +25,9 @@ export default function ItemLinesTable({
       </div>
 
       {/* Header */}
-      <div className={`hidden md:grid gap-2 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center bg-slate-50 py-2 rounded-lg ${showStatus ? 'grid-cols-[repeat(14,minmax(0,1fr))]' : showUploadAndRemark ? 'grid-cols-[repeat(14,minmax(0,1fr))]' : 'grid-cols-12'}`}>
+      <div className={`hidden md:grid gap-2 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center bg-slate-50 py-2 rounded-lg ${showStatus ? 'grid-cols-[repeat(15,minmax(0,1fr))]' : showUploadAndRemark ? 'grid-cols-[repeat(15,minmax(0,1fr))]' : 'grid-cols-[repeat(13,minmax(0,1fr))]'}`}>
         <div className="col-span-2 text-left">Item Code</div>
+        <div className="col-span-1 text-center">Image</div>
         {showStatus ? (
           <>
             <div className="col-span-2 text-left">Description</div>
@@ -91,8 +92,11 @@ export default function ItemLinesTable({
         const dispatched = Number(item.dispatchedQty || 0);
         const remaining = Math.max(0, ordered - dispatched);
 
+        const matchedInventoryItem = inventoryItems?.find(i => (i.ItemCode || i.code) === item.itemCode);
+        const imageUrl = item.thumbnail || (matchedInventoryItem ? (matchedInventoryItem.Thumbnail || matchedInventoryItem.product_image_url) : '');
+
         return (
-          <div key={item.id} className={`grid gap-3 md:gap-2 items-center bg-white border border-slate-100 md:border-b p-4 md:p-2 rounded-xl md:rounded-none shadow-sm md:shadow-none grid-cols-2 ${showStatus ? 'md:grid-cols-[repeat(14,minmax(0,1fr))]' : showUploadAndRemark ? 'md:grid-cols-[repeat(14,minmax(0,1fr))]' : 'md:grid-cols-12'}`}>
+          <div key={item.id} className={`grid gap-3 md:gap-2 items-center bg-white border border-slate-100 md:border-b p-4 md:p-2 rounded-xl md:rounded-none shadow-sm md:shadow-none grid-cols-2 ${showStatus ? 'md:grid-cols-[repeat(15,minmax(0,1fr))]' : showUploadAndRemark ? 'md:grid-cols-[repeat(15,minmax(0,1fr))]' : 'md:grid-cols-[repeat(13,minmax(0,1fr))]'}`}>
             <div className="col-span-2 md:col-span-2 space-y-1">
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Item Code</div>
               <SearchableDropdown
@@ -106,6 +110,18 @@ export default function ItemLinesTable({
                 rounded="rounded"
               />
             </div>
+
+            <div className="col-span-1 md:col-span-1 flex flex-col items-center justify-center space-y-1">
+              <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase w-full text-center">Image</div>
+              {imageUrl ? (
+                <img src={imageUrl} alt="product" className="w-12 h-12 rounded object-cover border border-slate-200 bg-slate-50" />
+              ) : (
+                <div className="w-12 h-12 rounded bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+                  <ImageIcon size={20} />
+                </div>
+              )}
+            </div>
+
             <div className={`col-span-2 ${showStatus ? 'md:col-span-2' : showUploadAndRemark ? 'md:col-span-2' : 'md:col-span-3'} space-y-1`}>
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Description</div>
               <input type="text" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none" placeholder="Description" />
