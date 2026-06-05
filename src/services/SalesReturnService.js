@@ -1,34 +1,80 @@
-const STORAGE_KEY = 'ims_sales_returns';
+import { supabase } from '../supabaseClient';
 
 export const getSalesReturns = async () => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+  const { data, error } = await supabase.from('scales_return').select('*').order('created_at', { ascending: false });
+  if (error) {
+    console.error("Error fetching sales returns:", error);
+    return [];
+  }
+  return data.map(item => {
+    const details = item.details || {};
+    const basic = details.basicInfo || {};
+    const other = details.otherInfo || {};
+    const sum = details.summary || {};
+    
+    let state = '-';
+    if (basic.cityState) {
+       state = basic.cityState.includes('/') ? basic.cityState.split('/')[1]?.trim() : basic.cityState;
+    } else if (other.state) {
+       state = other.state;
+    }
+
+    return {
+      ...details,
+      id: item.id,
+      SalesReturnNo: item.return_no,
+      customerName: item.customer_name,
+      date: item.date,
+      status: item.status,
+      details: details,
+      state: state,
+      mobileNumber: basic.mobile || other.mobile || '-',
+      salesPerson: other.salesPerson || 'Admin',
+      totalAmount: sum.totalAmount || 0
+    };
+  });
 };
 
 export const createSalesReturn = async (data) => {
-  const allData = await getSalesReturns();
-  const serialNo = allData.length + 1;
-  const docNo = `SR-${serialNo.toString().padStart(4, '0')}`;
-  const newItem = { ...data, id: Date.now(), SalesReturnNo: docNo };
-  allData.push(newItem);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-  return newItem;
+  const { count } = await supabase.from('scales_return').select('*', { count: 'exact', head: true });
+  const docNo = `SR-${String((count || 0) + 1).padStart(4, '0')}`;
+  
+  const insertData = {
+    id: String(Date.now()),
+    return_no: docNo,
+    customer_name: data.customerName || data.customer || data.details?.basicInfo?.customer || '',
+    date: data.date || new Date().toISOString().split('T')[0],
+    status: data.status || 'Active',
+    details: data.details || data
+  };
+
+  const { data: result, error } = await supabase.from('scales_return').insert([insertData]).select().single();
+  if (error) throw error;
+  
+  return { ...data, id: result.id, SalesReturnNo: result.return_no };
 };
 
 export const updateSalesReturn = async (id, updates) => {
-  const allData = await getSalesReturns();
-  const index = allData.findIndex(item => String(item.id) === String(id));
-  if (index !== -1) {
-    allData[index] = { ...allData[index], ...updates };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-    return allData[index];
-  }
-  return null;
+  const updateData = {};
+  if (updates.status) updateData.status = updates.status;
+  if (updates.customerName || updates.customer) updateData.customer_name = updates.customerName || updates.customer;
+  if (updates.details) updateData.details = updates.details;
+  
+  if (Object.keys(updateData).length === 0) updateData.details = updates;
+
+  const { data: result, error } = await supabase
+    .from('scales_return')
+    .update(updateData)
+    .eq('id', String(id))
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return { ...updates, id: result.id, SalesReturnNo: result.return_no };
 };
 
 export const deleteSalesReturn = async (id) => {
-  const allData = await getSalesReturns();
-  const newData = allData.filter(item => String(item.id) !== String(id));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+  const { error } = await supabase.from('scales_return').delete().eq('id', String(id));
+  if (error) throw error;
   return true;
 };

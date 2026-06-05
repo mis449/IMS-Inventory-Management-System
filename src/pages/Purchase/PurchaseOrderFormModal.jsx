@@ -224,6 +224,7 @@ export default function PurchaseOrderFormModal({ isOpen, onClose, onSave, initia
               address: vendor.address || prev.address,
               areaPinCode: vendor.areaPinCode || prev.areaPinCode,
               cityState: vendor.cityState || prev.cityState,
+              state: vendor.state || vendor.cityState || prev.state,
               email: vendor.email || prev.email,
               mobile: vendor.mobile || prev.mobile,
               priceList: vendor.priceList || prev.priceList
@@ -231,46 +232,19 @@ export default function PurchaseOrderFormModal({ isOpen, onClose, onSave, initia
           }}
         />
 
-        <SalesTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-
         <div className="min-h-[250px] py-4">
-          {activeTab === 'ItemLines' && (
-            <>
-              <ItemLinesTable 
-                items={items}
-                inventoryItems={inventoryItems}
-                handleItemChange={handleItemChange}
-                handleItemCodeSelect={handleItemCodeSelect}
-                removeItemLine={removeItemLine}
-                addItemLine={addItemLine}
-                addSection={addSection}
-                addSubSection={addSubSection}
-                setIsCatalogOpen={setIsCatalogOpen}
-              />
-              <SummaryCard summary={summary} />
-            </>
-          )}
-
-          {activeTab === 'OtherInfo' && (
-            <OtherInformationTab 
-              otherInfo={otherInfo} setOtherInfo={setOtherInfo} 
-              quotationStatus={purchaseStatus} setQuotationStatus={setPurchaseStatus}
-              supplyStatus={supplyStatus} setSupplyStatus={setSupplyStatus}
-            />
-          )}
-
-          {activeTab === 'Notes' && (
-            <div className="space-y-5 px-2">
-               <div className="space-y-1.5">
-                  <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Remarks</label>
-                  <textarea rows="2" value={notes.remarks} onChange={(e) => setNotes({...notes, remarks: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm bg-white outline-none"></textarea>
-               </div>
-               <div className="space-y-1.5">
-                  <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Terms & Conditions</label>
-                  <textarea rows="3" value={notes.termsAndConditions} onChange={(e) => setNotes({...notes, termsAndConditions: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm bg-white outline-none"></textarea>
-               </div>
-            </div>
-          )}
+          <ItemLinesTable 
+            items={items}
+            inventoryItems={inventoryItems}
+            handleItemChange={handleItemChange}
+            handleItemCodeSelect={handleItemCodeSelect}
+            removeItemLine={removeItemLine}
+            addItemLine={addItemLine}
+            addSection={addSection}
+            addSubSection={addSubSection}
+            setIsCatalogOpen={setIsCatalogOpen}
+          />
+          <SummaryCard summary={summary} />
         </div>
       </div>
     </ModalForm>

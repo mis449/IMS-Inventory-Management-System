@@ -54,6 +54,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/master',              icon: LayoutGrid,     label: 'Item Details' },
     { path: '/purchase',            icon: ShoppingCart,   label: 'Purchase' },
     { path: '/sales',               icon: FileText,       label: 'Sales' },
+    { path: '/order-summary',       icon: ClipboardList,  label: 'Order Summary' },
+    { path: '/item-tracker',        icon: PackageSearch,  label: 'Item Tracker' },
     { path: '/settings',            icon: Settings,       label: 'Settings' },
   ];
 
@@ -62,6 +64,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/master',        icon: LayoutGrid,   label: 'Item Details' },
     { path: '/purchase',      icon: ShoppingCart, label: 'Purchase' },
     { path: '/sales',         icon: FileText,     label: 'Sales' },
+    { path: '/order-summary', icon: ClipboardList,label: 'Order Summary' },
+    { path: '/item-tracker',  icon: PackageSearch,label: 'Item Tracker' },
   ];
 
   const menuItems = user?.role?.toUpperCase() === 'ADMIN' ? adminMenuItems : employeeMenuItems;

@@ -11,19 +11,38 @@ const useDataStore = create((set, get) => ({
   customers: [],
   vendors: [],
 
-  // Fetch customers from local storage
-  fetchCustomers: () => {
+  // Fetch customers from Supabase
+  fetchCustomers: async () => {
     try {
-      const stored = localStorage.getItem('customers');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        let customersData = parsed.map(c => typeof c === 'string' ? { name: c } : c);
+      const { data, error } = await supabase.from('customer').select('*');
+      if (error) throw error;
+      
+      if (data) {
+        let customersData = data.map(c => ({
+          id: c.id,
+          name: c.name,
+          title: c.title,
+          firstName: c.first_name,
+          lastName: c.last_name,
+          mobile: c.mobile,
+          company: c.company,
+          salesPerson: c.sales_person,
+          gstin: c.gstin,
+          gstTreatment: c.gst_treatment,
+          pan: c.pan,
+          gstType: c.gst_type,
+          address: c.address,
+          priceList: c.price_list,
+          areaPinCode: c.area_pin_code,
+          cityState: c.city_state,
+          email: c.email
+        }));
         
         // Filter out dummy default customers if they have no other data attached
         const dummyNames = ['Individual', 'Corporate', 'Walk-in Customer'];
         customersData = customersData.filter(c => {
            if (dummyNames.includes(c.name)) {
-              return Object.keys(c).length > 1; // Keep if user added an address/mobile to it
+              return Object.keys(c).length > 2; // Keep if user added address/mobile (ignoring id and name)
            }
            return true;
         });
@@ -37,13 +56,32 @@ const useDataStore = create((set, get) => ({
     }
   },
 
-  // Fetch vendors from local storage
-  fetchVendors: () => {
+  // Fetch vendors from Supabase
+  fetchVendors: async () => {
     try {
-      const stored = localStorage.getItem('vendors');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        let vendorsData = parsed.map(v => typeof v === 'string' ? { name: v } : v);
+      const { data, error } = await supabase.from('vendor').select('*');
+      if (error) throw error;
+      
+      if (data) {
+        let vendorsData = data.map(v => ({
+          id: v.id,
+          name: v.name,
+          title: v.title,
+          firstName: v.first_name,
+          lastName: v.last_name,
+          mobile: v.mobile,
+          company: v.company,
+          salesPerson: v.sales_person,
+          gstin: v.gstin,
+          gstTreatment: v.gst_treatment,
+          pan: v.pan,
+          gstType: v.gst_type,
+          address: v.address,
+          priceList: v.price_list,
+          areaPinCode: v.area_pin_code,
+          cityState: v.city_state,
+          email: v.email
+        }));
         set({ vendors: vendorsData });
       } else {
         set({ vendors: [] });
@@ -53,52 +91,89 @@ const useDataStore = create((set, get) => ({
     }
   },
 
-  // Add a new customer to local storage
-  addCustomer: (customerData) => {
+  // Add a new customer to Supabase
+  addCustomer: async (customerData) => {
     if (!customerData) return;
     const custName = customerData.company || customerData.customer || customerData.name || 'New Customer';
     
-    const current = get().customers;
-    const existingIndex = current.findIndex(c => c.name === custName);
-    
     const newCustomer = {
-      ...customerData,
       name: custName,
+      title: customerData.title || '',
+      first_name: customerData.firstName || customerData.first_name || '',
+      last_name: customerData.lastName || customerData.last_name || '',
+      mobile: customerData.mobile || '',
+      company: customerData.company || '',
+      sales_person: customerData.salesPerson || customerData.sales_person || '',
+      gstin: customerData.gstin || '',
+      gst_treatment: customerData.gstTreatment || customerData.gst_treatment || '',
+      pan: customerData.pan || '',
+      gst_type: customerData.gstType || customerData.gst_type || '',
+      address: customerData.address || '',
+      price_list: customerData.priceList || customerData.price_list || '',
+      area_pin_code: customerData.areaPinCode || customerData.area_pin_code || '',
+      city_state: customerData.cityState || customerData.city_state || '',
+      email: customerData.email || ''
     };
 
-    let updated = [...current];
-    if (existingIndex >= 0) {
-      updated[existingIndex] = newCustomer;
-    } else {
-      updated = [...current, newCustomer];
+    try {
+      // Check if exists
+      const current = get().customers;
+      const existing = current.find(c => c.name === custName);
+      
+      if (existing && existing.id) {
+        await supabase.from('customer').update(newCustomer).eq('id', existing.id);
+      } else {
+        newCustomer.id = String(Date.now());
+        await supabase.from('customer').insert([newCustomer]);
+      }
+      
+      // Refresh list
+      get().fetchCustomers();
+    } catch (e) {
+      console.error('Error saving customer:', e);
     }
-    
-    localStorage.setItem('customers', JSON.stringify(updated));
-    set({ customers: updated });
   },
 
-  // Add a new vendor to local storage
-  addVendor: (vendorData) => {
+  // Add a new vendor to Supabase
+  addVendor: async (vendorData) => {
     if (!vendorData) return;
     const vendorName = vendorData.company || vendorData.vendorName || vendorData.name || 'New Vendor';
     
-    const current = get().vendors;
-    const existingIndex = current.findIndex(v => v.name === vendorName);
-    
     const newVendor = {
-      ...vendorData,
       name: vendorName,
+      title: vendorData.title || '',
+      first_name: vendorData.firstName || vendorData.first_name || '',
+      last_name: vendorData.lastName || vendorData.last_name || '',
+      mobile: vendorData.mobile || '',
+      company: vendorData.company || '',
+      sales_person: vendorData.salesPerson || vendorData.sales_person || '',
+      gstin: vendorData.gstin || '',
+      gst_treatment: vendorData.gstTreatment || vendorData.gst_treatment || '',
+      pan: vendorData.pan || '',
+      gst_type: vendorData.gstType || vendorData.gst_type || '',
+      address: vendorData.address || '',
+      price_list: vendorData.priceList || vendorData.price_list || '',
+      area_pin_code: vendorData.areaPinCode || vendorData.area_pin_code || '',
+      city_state: vendorData.cityState || vendorData.city_state || '',
+      email: vendorData.email || ''
     };
 
-    let updated = [...current];
-    if (existingIndex >= 0) {
-      updated[existingIndex] = newVendor;
-    } else {
-      updated = [...current, newVendor];
+    try {
+      const current = get().vendors;
+      const existing = current.find(v => v.name === vendorName);
+      
+      if (existing && existing.id) {
+        await supabase.from('vendor').update(newVendor).eq('id', existing.id);
+      } else {
+        newVendor.id = String(Date.now());
+        await supabase.from('vendor').insert([newVendor]);
+      }
+      
+      // Refresh list
+      get().fetchVendors();
+    } catch (e) {
+      console.error('Error saving vendor:', e);
     }
-    
-    localStorage.setItem('vendors', JSON.stringify(updated));
-    set({ vendors: updated });
   },
 
   // Fetch items from the merged API endpoint

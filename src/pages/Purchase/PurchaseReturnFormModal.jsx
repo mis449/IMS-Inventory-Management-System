@@ -63,13 +63,40 @@ export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initi
 
   useEffect(() => {
     if (initialData) {
-      if (initialData.details && initialData.details.basicInfo) {
-        setBasicInfo(initialData.details.basicInfo);
-      } else if (initialData.vendorName || initialData.vendor) {
-        setBasicInfo(prev => ({ ...prev, vendor: initialData.vendorName || initialData.vendor }));
+      // Map flat structure back to component state (handling backward compatibility)
+      const details = initialData.details || {};
+      const initialBasic = details.basicInfo || details.vendorBasicInfo || {};
+      
+      setBasicInfo({
+        vendor: initialData.vendorName || initialData.vendor_name || initialData.vendor || initialBasic.vendor || '',
+        address: initialData.vendor_address || initialBasic.address || '',
+        areaPinCode: initialData.vendor_area_pin_code || initialBasic.areaPinCode || '',
+        cityState: initialData.vendor_city_state || initialBasic.cityState || '',
+        state: initialData.vendor_state || initialBasic.state || '',
+        email: initialData.vendor_email || initialBasic.email || '',
+        mobile: initialData.vendor_mobile || initialBasic.mobile || '',
+        validityDate: initialData.validity_date || initialBasic.validityDate || '',
+        priceList: initialData.price_list || initialBasic.priceList || 'Standard',
+        paymentTerms: initialData.payment_terms || initialBasic.paymentTerms || 'Net 30'
+      });
+
+      setOtherInfo({
+        internalNotes: initialData.internal_notes || details.otherInfo?.internalNotes || ''
+      });
+
+      setNotes({
+        remarks: initialData.remarks || details.notes?.remarks || '',
+        termsAndConditions: initialData.terms_conditions || details.notes?.termsAndConditions || ''
+      });
+
+      if (initialData.items && initialData.items.length > 0) {
+        setItems(initialData.items.map(item => ({...item, id: Date.now() + Math.random()})));
+      } else if (details.items && details.items.length > 0) {
+        setItems(details.items.map(item => ({...item, id: Date.now() + Math.random()})));
       }
-      if (initialData.details?.items) {
-        setItems(initialData.details.items.map(item => ({...item, id: Date.now() + Math.random()})));
+      
+      if (initialData.date || initialData.docDate) {
+         setHeaderInfo(prev => ({...prev, returnDate: initialData.date || initialData.docDate}));
       }
     }
   }, [initialData]);
@@ -164,17 +191,31 @@ export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initi
     setIsSubmitting(true);
     try {
       const data = {
-        returnNo: `PR-${Math.floor(1000 + Math.random() * 9000)}`,
-        date: new Date().toISOString().split('T')[0],
-        vendor: basicInfo.vendor,
-        vendorName: basicInfo.vendor,
-        state: basicInfo.state || '',
-        mobile: basicInfo.mobile || '',
-        amount: summary.totalAmount,
+        return_no: `PR-${Math.floor(1000 + Math.random() * 9000)}`,
+        date: headerInfo.returnDate || new Date().toISOString().split('T')[0],
+        vendor_name: basicInfo.vendor,
         status: 'Active',
-        refPurchase: initialData?.docNo || '-',
-        details: { basicInfo, items, otherInfo, notes, summary }
+        vendor_address: basicInfo.address || '',
+        vendor_area_pin_code: basicInfo.areaPinCode || '',
+        vendor_city_state: basicInfo.cityState || '',
+        vendor_state: basicInfo.state || '',
+        vendor_email: basicInfo.email || '',
+        vendor_mobile: basicInfo.mobile || '',
+        validity_date: basicInfo.validityDate || '',
+        price_list: basicInfo.priceList || '',
+        payment_terms: basicInfo.paymentTerms || '',
+        internal_notes: otherInfo.internalNotes || '',
+        remarks: notes.remarks || '',
+        terms_conditions: notes.termsAndConditions || '',
+        gross_amount: summary.grossAmount || 0,
+        discount_amount: summary.discountAmount || 0,
+        tax_amount: summary.taxAmount || 0,
+        round_off_amount: summary.roundOffAmount || 0,
+        total_amount: summary.totalAmount || 0,
+        ref_purchase: initialData?.docNo || initialData?.ref_purchase || '-',
+        items: items.filter(i => i.itemCode !== '' || i.type !== 'item') // Filter out empty blank lines
       };
+      
       let saved;
       if (initialData && initialData.id && !isConversion) {
         saved = await updatePurchaseReturn(initialData.id, data);
@@ -214,42 +255,20 @@ export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initi
           onOpenVendorModal={() => setIsVendorModalOpen(true)} 
         />
 
-        <SalesTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-
         <div className="min-h-[250px] py-4">
-          {activeTab === 'ItemLines' && (
-            <>
-              <ItemLinesTable 
-                items={items}
-                inventoryItems={inventoryItems}
-                handleItemChange={handleItemChange}
-                handleItemCodeSelect={handleItemCodeSelect}
-                removeItemLine={removeItemLine}
-                addItemLine={addItemLine}
-                addSection={addSection}
-                addSubSection={addSubSection}
-                setIsCatalogOpen={setIsCatalogOpen}
-              />
-              <SummaryCard summary={summary} />
-            </>
-          )}
-
-          {activeTab === 'OtherInfo' && (
-            <OtherInformationTab otherInfo={otherInfo} setOtherInfo={setOtherInfo} />
-          )}
-
-          {activeTab === 'Notes' && (
-            <div className="space-y-5 px-2">
-               <div className="space-y-1.5">
-                  <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Remarks</label>
-                  <textarea rows="2" value={notes.remarks} onChange={(e) => setNotes({...notes, remarks: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm bg-white outline-none"></textarea>
-               </div>
-               <div className="space-y-1.5">
-                  <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Terms & Conditions</label>
-                  <textarea rows="3" value={notes.termsAndConditions} onChange={(e) => setNotes({...notes, termsAndConditions: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm bg-white outline-none"></textarea>
-               </div>
-            </div>
-          )}
+          <ItemLinesTable 
+            items={items}
+            inventoryItems={inventoryItems}
+            handleItemChange={handleItemChange}
+            handleItemCodeSelect={handleItemCodeSelect}
+            removeItemLine={removeItemLine}
+            addItemLine={addItemLine}
+            addSection={addSection}
+            addSubSection={addSubSection}
+            setIsCatalogOpen={setIsCatalogOpen}
+            showUploadAndRemark={true}
+          />
+          <SummaryCard summary={summary} />
         </div>
 
         {/* Footer Actions */}

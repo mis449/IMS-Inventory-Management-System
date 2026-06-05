@@ -5,8 +5,7 @@ import useDataStore from '../../store/dataStore';
 
 const INITIAL_STATE = {
   salutation: 'Mr.',
-  firstName: '',
-  lastName: '',
+  fullName: '',
   company: '',
   gstin: '',
   pan: '',
@@ -104,14 +103,14 @@ export default function NewVendorModal({ isOpen, onClose, onSave }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.firstName || !formData.mobile || !formData.gstType || !formData.areaPinCode) {
+    if (!formData.fullName || !formData.mobile || !formData.gstType || !formData.areaPinCode) {
       toast.error('Please fill all required fields');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const vendorName = `${formData.salutation} ${formData.firstName} ${formData.lastName}`.trim();
+      const vendorName = `${formData.salutation} ${formData.fullName}`.trim();
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const finalData = { ...formData, vendorName };
@@ -158,18 +157,11 @@ export default function NewVendorModal({ isOpen, onClose, onSave }) {
               </select>
               <input 
                 type="text" 
-                placeholder="First Name"
-                value={formData.firstName} 
-                onChange={(e) => handleChange('firstName', e.target.value)}
+                placeholder="Full Name"
+                value={formData.fullName} 
+                onChange={(e) => handleChange('fullName', e.target.value)}
                 className="flex-1 min-w-0 w-full px-2 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
                 required
-              />
-              <input 
-                type="text" 
-                placeholder="Last Name"
-                value={formData.lastName} 
-                onChange={(e) => handleChange('lastName', e.target.value)}
-                className="flex-1 min-w-0 w-full px-2 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
               />
             </div>
           </div>

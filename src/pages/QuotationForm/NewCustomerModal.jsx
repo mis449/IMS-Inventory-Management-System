@@ -5,8 +5,7 @@ import ModalForm from '../../components/ModalForm';
 export default function NewCustomerModal({ isOpen, onClose, onSave }) {
   const [formData, setFormData] = useState({
     title: 'Mr.',
-    firstName: '',
-    lastName: '',
+    fullName: '',
     company: '',
     gstin: '',
     pan: '',
@@ -25,7 +24,7 @@ export default function NewCustomerModal({ isOpen, onClose, onSave }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.firstName || !formData.lastName || !formData.areaPinCode || !formData.mobile || !formData.gstType) {
+    if (!formData.fullName || !formData.areaPinCode || !formData.mobile || !formData.gstType) {
       toast.error('Please fill all required fields');
       return;
     }
@@ -38,7 +37,7 @@ export default function NewCustomerModal({ isOpen, onClose, onSave }) {
       if (onSave) {
         const finalData = {
           ...formData,
-          customer: `${formData.title} ${formData.firstName} ${formData.lastName}`.trim()
+          customer: `${formData.title} ${formData.fullName}`.trim()
         };
         onSave(finalData);
       }
@@ -155,17 +154,9 @@ export default function NewCustomerModal({ isOpen, onClose, onSave }) {
               </select>
               <input 
                 type="text" 
-                placeholder="First Name"
-                value={formData.firstName} 
-                onChange={(e) => handleChange('firstName', e.target.value)}
-                className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none w-full"
-                required
-              />
-              <input 
-                type="text" 
-                placeholder="Last Name"
-                value={formData.lastName} 
-                onChange={(e) => handleChange('lastName', e.target.value)}
+                placeholder="Full Name"
+                value={formData.fullName} 
+                onChange={(e) => handleChange('fullName', e.target.value)}
                 className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none w-full"
                 required
               />
@@ -268,8 +259,8 @@ export default function NewCustomerModal({ isOpen, onClose, onSave }) {
               className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none"
             >
               <option value="">Select</option>
-              <option value="Admin">Admin</option>
-              <option value="Sales Rep 1">Sales Rep 1</option>
+              <option value="Admin">Krisha</option>
+              <option value="Sales Rep 1"></option>
             </select>
           </div>
 

@@ -12,7 +12,8 @@ export default function ItemLinesTable({
   addSection,
   addSubSection,
   setIsCatalogOpen,
-  showStatus = false
+  showStatus = false,
+  showUploadAndRemark = false
 }) {
   return (
     <div className="space-y-4">
@@ -24,7 +25,7 @@ export default function ItemLinesTable({
       </div>
 
       {/* Header */}
-      <div className={`hidden md:grid gap-2 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center bg-slate-50 py-2 rounded-lg ${showStatus ? 'grid-cols-[repeat(14,minmax(0,1fr))]' : 'grid-cols-12'}`}>
+      <div className={`hidden md:grid gap-2 px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center bg-slate-50 py-2 rounded-lg ${showStatus ? 'grid-cols-[repeat(14,minmax(0,1fr))]' : showUploadAndRemark ? 'grid-cols-[repeat(14,minmax(0,1fr))]' : 'grid-cols-12'}`}>
         <div className="col-span-2 text-left">Item Code</div>
         {showStatus ? (
           <>
@@ -37,6 +38,18 @@ export default function ItemLinesTable({
             <div className="col-span-1">Tax %</div>
             <div className="col-span-1 text-right">Net Amt</div>
             <div className="col-span-2 text-center">Status</div>
+            <div className="col-span-1">Action</div>
+          </>
+        ) : showUploadAndRemark ? (
+          <>
+            <div className="col-span-2 text-left">Description</div>
+            <div className="col-span-1">Qty</div>
+            <div className="col-span-1">Unit Price</div>
+            <div className="col-span-1">Disc %</div>
+            <div className="col-span-1">Tax %</div>
+            <div className="col-span-1 text-right">Net Amt</div>
+            <div className="col-span-2 text-center">Remark</div>
+            <div className="col-span-2 text-center">Upload Image</div>
             <div className="col-span-1">Action</div>
           </>
         ) : (
@@ -79,7 +92,7 @@ export default function ItemLinesTable({
         const remaining = Math.max(0, ordered - dispatched);
 
         return (
-          <div key={item.id} className={`grid gap-3 md:gap-2 items-end bg-white border border-slate-100 md:border-b p-4 md:p-2 rounded-xl md:rounded-none shadow-sm md:shadow-none grid-cols-2 ${showStatus ? 'md:grid-cols-[repeat(14,minmax(0,1fr))]' : 'md:grid-cols-12'}`}>
+          <div key={item.id} className={`grid gap-3 md:gap-2 items-center bg-white border border-slate-100 md:border-b p-4 md:p-2 rounded-xl md:rounded-none shadow-sm md:shadow-none grid-cols-2 ${showStatus ? 'md:grid-cols-[repeat(14,minmax(0,1fr))]' : showUploadAndRemark ? 'md:grid-cols-[repeat(14,minmax(0,1fr))]' : 'md:grid-cols-12'}`}>
             <div className="col-span-2 md:col-span-2 space-y-1">
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Item Code</div>
               <SearchableDropdown
@@ -93,7 +106,7 @@ export default function ItemLinesTable({
                 rounded="rounded"
               />
             </div>
-            <div className={`col-span-2 ${showStatus ? 'md:col-span-2' : 'md:col-span-3'} space-y-1`}>
+            <div className={`col-span-2 ${showStatus ? 'md:col-span-2' : showUploadAndRemark ? 'md:col-span-2' : 'md:col-span-3'} space-y-1`}>
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Description</div>
               <input type="text" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none" placeholder="Description" />
             </div>
@@ -117,7 +130,7 @@ export default function ItemLinesTable({
               </>
             )}
 
-            <div className={`col-span-1 ${showStatus ? 'md:col-span-1' : 'md:col-span-2'} space-y-1 text-center md:text-center`}>
+            <div className={`col-span-1 ${showStatus ? 'md:col-span-1' : showUploadAndRemark ? 'md:col-span-1' : 'md:col-span-2'} space-y-1 text-center md:text-center`}>
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Unit Price</div>
               <input type="number" value={item.unitPrice} onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none text-center" />
             </div>
@@ -133,6 +146,22 @@ export default function ItemLinesTable({
               <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Net Amount</div>
               ₹{net.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
             </div>
+            
+            {showUploadAndRemark && (
+              <>
+                <div className="col-span-2 md:col-span-2 space-y-1 text-center md:text-center">
+                  <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Remark</div>
+                  <input type="text" value={item.remark || ''} onChange={(e) => handleItemChange(item.id, 'remark', e.target.value)} className="w-full border border-slate-200 text-xs px-2 py-1.5 rounded outline-none h-[30px]" placeholder="Remark" />
+                </div>
+                <div className="col-span-1 md:col-span-2 space-y-1 text-center md:text-center">
+                  <div className="md:hidden text-[10px] font-bold text-slate-500 uppercase">Upload Image</div>
+                  <label className="flex items-center justify-center cursor-pointer w-full border border-slate-200 text-[10px] px-2 rounded outline-none h-[30px] bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold transition-colors">
+                    <span className="truncate">{item.image ? item.image.name : 'Upload Image'}</span>
+                    <input type="file" accept="image/*" onChange={(e) => handleItemChange(item.id, 'image', e.target.files[0])} className="hidden" />
+                  </label>
+                </div>
+              </>
+            )}
             
             {/* Status Column */}
             {showStatus && (

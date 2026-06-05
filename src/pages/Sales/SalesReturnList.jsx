@@ -113,16 +113,15 @@ export default function SalesReturnList({ conversionContext, clearConversionCont
   };
 
   const tableHeaders = [
-    "Series", "Doc #", "Doc Date", "Customer", "State", 
+    "Doc #", "Doc Date", "Customer", "State", 
     "Mobile", "Sales Person", "Amount", "Action"
   ];
 
   const renderRow = (item, idx) => (
     <tr key={item.id || idx} className="hover:bg-sky-50/25 transition-colors border-b border-slate-100">
-      <td className="px-4 py-3 text-center text-[11px] text-slate-500 whitespace-nowrap">{item.series || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-sky-600 font-bold whitespace-nowrap">{item.SalesReturnNo || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{item.date || '-'}</td>
-      <td className="px-4 py-3 text-left text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.customerName || '-'}</td>
+      <td className="px-4 py-3 text-center text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.customerName || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.state || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.mobileNumber || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.salesPerson || '-'}</td>

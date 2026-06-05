@@ -207,7 +207,7 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
         supplyStatus: supplyStatus,
         billNo: headerInfo.billNo,
         billDate: headerInfo.billDate,
-        details: { basicInfo, items, otherInfo, notes, summary }
+        details: { headerInfo, basicInfo, items, otherInfo, notes, summary }
       };
       let saved;
       if (initialData && initialData.id && !isConversion) {
@@ -257,9 +257,7 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
               <input type="date" value={headerInfo.billDate} onChange={e => setHeaderInfo({...headerInfo, billDate: e.target.value})} className="px-2 py-1.5 md:py-1 border border-slate-200 rounded text-xs outline-none w-full md:w-auto" />
             </div>
           </div>
-          <button type="button" className="text-xs font-bold bg-white text-teal-600 border border-teal-200 px-3 py-2 md:py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:bg-teal-50 transition shadow-sm w-full md:w-auto mt-2 md:mt-0">
-            <UploadCloud size={14} /> Post In Account
-          </button>
+
         </div>
 
         <VendorDetailsSection 
@@ -268,46 +266,19 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
           onOpenVendorModal={() => setIsVendorModalOpen(true)} 
         />
 
-        <SalesTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-
         <div className="min-h-[250px] py-4">
-          {activeTab === 'ItemLines' && (
-            <>
-              <ItemLinesTable 
-                items={items}
-                inventoryItems={inventoryItems}
-                handleItemChange={handleItemChange}
-                handleItemCodeSelect={handleItemCodeSelect}
-                removeItemLine={removeItemLine}
-                addItemLine={addItemLine}
-                addSection={addSection}
-                addSubSection={addSubSection}
-                setIsCatalogOpen={setIsCatalogOpen}
-              />
-              <SummaryCard summary={summary} />
-            </>
-          )}
-
-          {activeTab === 'OtherInfo' && (
-            <OtherInformationTab 
-              otherInfo={otherInfo} setOtherInfo={setOtherInfo} 
-              quotationStatus={purchaseStatus} setQuotationStatus={setPurchaseStatus}
-              supplyStatus={supplyStatus} setSupplyStatus={setSupplyStatus}
-            />
-          )}
-
-          {activeTab === 'Notes' && (
-            <div className="space-y-5 px-2">
-               <div className="space-y-1.5">
-                  <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Remarks</label>
-                  <textarea rows="2" value={notes.remarks} onChange={(e) => setNotes({...notes, remarks: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm bg-white outline-none"></textarea>
-               </div>
-               <div className="space-y-1.5">
-                  <label className="block text-[11px] text-slate-700 font-bold uppercase tracking-wider">Terms & Conditions</label>
-                  <textarea rows="3" value={notes.termsAndConditions} onChange={(e) => setNotes({...notes, termsAndConditions: e.target.value})} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-xs md:text-sm bg-white outline-none"></textarea>
-               </div>
-            </div>
-          )}
+          <ItemLinesTable 
+            items={items}
+            inventoryItems={inventoryItems}
+            handleItemChange={handleItemChange}
+            handleItemCodeSelect={handleItemCodeSelect}
+            removeItemLine={removeItemLine}
+            addItemLine={addItemLine}
+            addSection={addSection}
+            addSubSection={addSubSection}
+            setIsCatalogOpen={setIsCatalogOpen}
+          />
+          <SummaryCard summary={summary} />
         </div>
 
         {/* Footer Actions */}
@@ -391,111 +362,121 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
           
           <div className="flex-1 w-full overflow-y-auto min-h-0 rounded-b-2xl">
             <div id="purchase-print-area" className="bg-white p-8 border border-t-0 border-slate-150 text-slate-800 rounded-b-2xl w-full">
-              <div className="flex justify-between items-start border-b-2 border-teal-600 pb-5 mb-6">
+              <div className="flex justify-between items-start border-b-2 border-slate-800 pb-6 mb-8">
                 <div>
-                  <h1 className="text-xl font-black text-teal-850 uppercase tracking-wider">Parekh Gallerium</h1>
-                  <p className="text-[9px] text-slate-400 font-bold tracking-widest uppercase">Premium Inventory Management System</p>
-                  <div className="mt-2 text-xs text-slate-500 space-y-0.5">
+                  <h1 className="text-3xl font-black text-slate-900 uppercase tracking-widest">PAREKH GALLERIUM</h1>
+                  <p className="text-[10px] text-sky-700 font-bold tracking-widest uppercase mt-1">Premium Inventory Management System</p>
+                  <div className="mt-3 text-xs text-slate-600 space-y-0.5">
                     <p>VIP Road, Raipur, Chhattisgarh - 492001</p>
-                    <p>Phone: +91 98765 43210 | Email: contact@parekhgallerium.com</p>
-                    <p className="font-semibold text-slate-700">GSTIN: 22AAAAA0000A1Z2</p>
+                    <p>Phone: +91 98765 43210</p>
+                    <p>Email: contact@parekhgallerium.com</p>
+                    <p className="font-bold text-slate-800 mt-1.5">GSTIN: 22AAAAA0000A1Z2</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <h2 className="text-3xl font-black text-slate-900 tracking-tight text-[26px]">PURCHASE</h2>
-                  <div className="mt-2 text-xs text-slate-500 space-y-1">
-                    <p><span className="font-semibold text-slate-700">Bill No:</span> {headerInfo.billNo || '-'}</p>
-                    <p><span className="font-semibold text-slate-700">Bill Date:</span> {headerInfo.billDate || '-'}</p>
-                    <p><span className="font-semibold text-slate-700">Mat.Rcvd Date:</span> {headerInfo.materialRcvdDate || '-'}</p>
+                  <h2 className="text-4xl font-light text-slate-400 tracking-widest uppercase mb-4">Purchase</h2>
+                  <div className="text-xs text-slate-600 space-y-1.5">
+                    <p><span className="font-bold text-slate-900 w-28 inline-block">Bill No:</span> {headerInfo.billNo || '-'}</p>
+                    <p><span className="font-bold text-slate-900 w-28 inline-block">Bill Date:</span> {headerInfo.billDate || '-'}</p>
+                    <p><span className="font-bold text-slate-900 w-28 inline-block">Mat.Rcvd Date:</span> {headerInfo.materialRcvdDate || '-'}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-8 mb-6">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Vendor Details</h3>
-                  <p className="font-bold text-slate-800">{basicInfo.vendor || 'N/A'}</p>
-                  {basicInfo.address && <p className="text-xs text-slate-600 mt-1">{basicInfo.address}</p>}
-                  {basicInfo.mobile && <p className="text-xs text-slate-600 mt-1">Ph: {basicInfo.mobile}</p>}
-                  {basicInfo.email && <p className="text-xs text-slate-600 mt-1">Email: {basicInfo.email}</p>}
+              <div className="flex gap-12 mb-10 text-xs">
+                <div className="flex-1">
+                  <h3 className="font-bold text-slate-800 border-b border-slate-300 pb-2 mb-3 uppercase tracking-widest text-[10px]">Vendor Details</h3>
+                  <div className="space-y-1">
+                    <p className="font-black text-slate-900 text-sm mb-2">{basicInfo.vendor || 'N/A'}</p>
+                    {basicInfo.address && <p className="text-slate-700">{basicInfo.address}</p>}
+                    {basicInfo.mobile && <p className="text-slate-700"><span className="font-semibold text-slate-500">Ph:</span> {basicInfo.mobile}</p>}
+                    {basicInfo.email && <p className="text-slate-700"><span className="font-semibold text-slate-500">Email:</span> {basicInfo.email}</p>}
+                  </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col justify-center">
-                   <div className="space-y-2">
-                     <div className="flex justify-between text-xs">
-                       <span className="text-slate-500 font-medium">Payment Terms:</span>
-                       <span className="font-bold text-slate-800">{basicInfo.paymentTerms || '-'}</span>
-                     </div>
-                     <div className="flex justify-between text-xs">
-                       <span className="text-slate-500 font-medium">Supply Status:</span>
-                       <span className="font-bold text-slate-800">{supplyStatus || '-'}</span>
-                     </div>
-                   </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-slate-800 border-b border-slate-300 pb-2 mb-3 uppercase tracking-widest text-[10px]">Purchase Details</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-slate-500">Payment Terms:</span> 
+                      <span className="font-bold text-slate-800">{basicInfo.paymentTerms || '-'}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mb-6 rounded-xl border border-slate-200 overflow-hidden">
-                <table className="w-full text-left border-collapse">
+              <div className="mb-8">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-100 text-[10px] uppercase tracking-wider text-slate-600">
-                      <th className="py-2.5 px-4 font-bold border-b border-slate-200">#</th>
-                      <th className="py-2.5 px-4 font-bold border-b border-slate-200">Item Description</th>
-                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Qty</th>
-                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Unit Price</th>
-                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Disc %</th>
-                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Tax %</th>
-                      <th className="py-2.5 px-4 font-bold border-b border-slate-200 text-right">Net Amt</th>
+                    <tr className="bg-slate-800 text-white font-bold uppercase tracking-widest text-[9px]">
+                      <th className="py-2 px-1 text-center w-8">SN</th>
+                      <th className="py-2 px-1 text-left w-[45%]">Product Details</th>
+                      <th className="py-2 px-1 text-center w-12">Qty</th>
+                      <th className="py-2 px-1 text-right w-24">Unit Price</th>
+                      <th className="py-2 px-1 text-center w-16">Disc %</th>
+                      <th className="py-2 px-1 text-center w-16">Tax %</th>
+                      <th className="py-2 px-1 text-right w-28">Net Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="text-xs">
-                    {items.filter(i => i.itemCode || i.description).map((item, idx) => (
-                      <tr key={idx} className="border-b border-slate-100 last:border-0">
-                        <td className="py-2 px-4 text-slate-500">{idx + 1}</td>
-                        <td className="py-2 px-4">
-                          <p className="font-bold text-slate-800">{item.itemCode}</p>
-                          <p className="text-slate-500 text-[10px]">{item.description}</p>
-                        </td>
-                        <td className="py-2 px-4 text-right font-medium text-slate-700">{item.quantity}</td>
-                        <td className="py-2 px-4 text-right text-slate-600">₹{Number(item.unitPrice || 0).toLocaleString('en-IN')}</td>
-                        <td className="py-2 px-4 text-right text-slate-600">{item.discountPercent || 0}%</td>
-                        <td className="py-2 px-4 text-right text-slate-600">{item.taxPercent || 0}%</td>
-                        <td className="py-2 px-4 text-right font-bold text-slate-800">₹{Number(item.netAmount || 0).toLocaleString('en-IN')}</td>
-                      </tr>
-                    ))}
+                  <tbody>
+                    {items.filter(i => i.itemCode || i.description).map((item, idx) => {
+                      const rowGross = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
+                      const rowDiscount = rowGross * ((Number(item.discountPercent) || 0) / 100);
+                      const afterDiscount = rowGross - rowDiscount;
+                      const rowTax = afterDiscount * ((Number(item.taxPercent) || 0) / 100);
+                      const netAmt = item.netAmount || (afterDiscount + rowTax);
+                      
+                      return (
+                        <tr key={idx} className="border-b border-slate-200 bg-white">
+                          <td className="py-2 px-1 text-center text-slate-500 font-medium">{idx + 1}</td>
+                          <td className="py-2 px-1 text-left">
+                            <div className="font-bold text-slate-800">{item.itemCode || '-'}</div>
+                            <div className="text-slate-600 capitalize mt-0.5 leading-snug text-justify pr-2">{item.description || '-'}</div>
+                          </td>
+                          <td className="py-2 px-1 text-center font-bold text-slate-800">{item.quantity}</td>
+                          <td className="py-2 px-1 text-right text-slate-700">₹{Number(item.unitPrice || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                          <td className="py-2 px-1 text-center text-slate-500">{item.discountPercent || 0}%</td>
+                          <td className="py-2 px-1 text-center text-slate-500">{item.taxPercent || 0}%</td>
+                          <td className="py-2 px-1 text-right font-black text-slate-900">₹{Number(netAmt).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
-              <div className="flex justify-end mb-8">
-                <div className="w-64 space-y-2 text-xs">
+              <div className="flex gap-12 text-xs mb-16">
+                <div className="flex-1 space-y-6">
+                  {notes.termsAndConditions && (
+                    <div>
+                      <h4 className="font-bold text-slate-800 uppercase tracking-widest text-[9px] mb-2">Terms & Conditions</h4>
+                      <p className="text-slate-600 whitespace-pre-line leading-relaxed">{notes.termsAndConditions}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-80 space-y-3">
                   <div className="flex justify-between text-slate-600">
                     <span>Gross Amount:</span>
-                    <span>₹{summary.grossAmount?.toLocaleString('en-IN') || '0'}</span>
+                    <span className="font-medium">₹{Number(summary.grossAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between text-rose-600">
-                    <span>Discount:</span>
-                    <span>- ₹{summary.discountAmount?.toLocaleString('en-IN') || '0'}</span>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Discount Amount:</span>
+                    <span className="font-medium">- ₹{Number(summary.discountAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between text-sky-600">
-                    <span>Tax:</span>
-                    <span>+ ₹{summary.taxAmount?.toLocaleString('en-IN') || '0'}</span>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Tax Amount:</span>
+                    <span className="font-medium">+ ₹{Number(summary.taxAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between text-slate-600 border-b border-slate-200 pb-2">
+                  <div className="flex justify-between text-slate-600 border-b border-slate-200 pb-3">
                     <span>Round Off:</span>
-                    <span>{summary.roundOffAmount > 0 ? '+' : ''}{summary.roundOffAmount?.toLocaleString('en-IN') || '0'}</span>
+                    <span className="font-medium">{summary.roundOffAmount >= 0 ? '+' : '-'} ₹{Math.abs(summary.roundOffAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="flex justify-between font-black text-sm text-slate-800 pt-1">
-                    <span>Total Amount:</span>
-                    <span>₹{summary.totalAmount?.toLocaleString('en-IN') || '0'}</span>
+                  <div className="flex justify-between text-slate-900 font-black text-base pt-1">
+                    <span>Grand Total:</span>
+                    <span>₹{Number(summary.totalAmount || 0).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
-
-              {notes.termsAndConditions && (
-                <div className="mt-8 border-t border-slate-200 pt-6">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Terms & Conditions</h3>
-                  <p className="text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">{notes.termsAndConditions}</p>
-                </div>
-              )}
             </div>
           </div>
         </div>

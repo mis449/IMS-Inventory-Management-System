@@ -105,7 +105,7 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
   };
 
   const tableHeaders = [
-    "Return No", "Date", "Vendor", "Mobile", "Reference Purchase", "Amount", "Status", "Action"
+    "Return No", "Date", "Vendor", "Mobile", "State", "Amount", "Status", "Action"
   ];
 
   const renderRow = (item, idx) => (
@@ -114,7 +114,7 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{item.date || '-'}</td>
       <td className="px-4 py-3 text-center text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendor || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.mobile || '-'}</td>
-      <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.refPurchase || '-'}</td>
+      <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.state || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-emerald-600 font-bold whitespace-nowrap">₹{Number(item.amount || 0).toLocaleString('en-IN')}</td>
       <td className="px-4 py-3 text-center whitespace-nowrap text-xs">
         <span className={`px-2.5 py-0.5 rounded text-[10px] uppercase font-bold ${getStatusColor(item.status)}`}>
@@ -152,8 +152,8 @@ export default function PurchaseReturnList({ conversionContext, clearConversionC
           <span className="text-slate-700 font-medium">{item.mobile || '-'}</span>
         </div>
         <div>
-          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Ref Purchase</span>
-          <span className="text-slate-700 font-medium">{item.refPurchase || '-'}</span>
+          <span className="text-slate-400 block uppercase text-[8px] tracking-tight">State</span>
+          <span className="text-slate-700 font-medium">{item.state || '-'}</span>
         </div>
         <div>
           <span className="text-slate-400 block uppercase text-[8px] tracking-tight">Amount</span>

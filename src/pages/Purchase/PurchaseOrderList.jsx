@@ -92,13 +92,12 @@ export default function PurchaseOrderList({ onConvertToPurchase }) {
   );
 
   const tableHeaders = [
-    "Series", "Doc #", "Doc Date", "Vendor Name", "State", 
+    "Doc #", "Doc Date", "Vendor Name", "State", 
     "Mobile", "Amount", "Action"
   ];
 
   const renderRow = (item, idx) => (
     <tr key={item.id || idx} className="hover:bg-sky-50/25 transition-colors border-b border-slate-100">
-      <td className="px-4 py-3 text-center text-[11px] text-slate-500 whitespace-nowrap">{item.series || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-sky-600 font-bold whitespace-nowrap">{item.docNo || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{item.docDate || '-'}</td>
       <td className="px-4 py-3 text-center text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendorName || '-'}</td>

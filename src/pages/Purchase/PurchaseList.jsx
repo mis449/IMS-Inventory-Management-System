@@ -99,13 +99,12 @@ export default function PurchaseList({ conversionContext, clearConversionContext
   );
 
   const tableHeaders = [
-    "Series", "Doc #", "Doc Date", "Vendor", "State", 
+    "Doc #", "Doc Date", "Vendor", "State", 
     "Mobile", "Bill #", "Bill Date", "Amount", "A/c Post", "Action"
   ];
 
   const renderRow = (item, idx) => (
     <tr key={item.id || idx} className="hover:bg-teal-50/25 transition-colors border-b border-slate-100">
-      <td className="px-4 py-3 text-center text-[11px] text-slate-500 whitespace-nowrap">{item.series || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-teal-600 font-bold whitespace-nowrap">{item.docNo || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{item.docDate || '-'}</td>
       <td className="px-4 py-3 text-center text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.vendor || '-'}</td>

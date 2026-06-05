@@ -115,23 +115,17 @@ export default function QuotationList({ onConvertToInvoice }) {
     return colors[status] || 'bg-slate-100 text-slate-700';
   };
 
-  const getSupplyStatusColor = (status) => {
-    if (status === 'Complete') return 'text-emerald-600 font-bold';
-    if (status === 'Pending') return 'text-amber-600 font-bold';
-    return 'text-slate-600';
-  };
 
   const tableHeaders = [
-    "Series", "Quot #", "Quot Date", "Customer", "State", 
-    "Mobile", "Sales Person", "Amount", "Quot Status", "Supply Status", "Action"
+    "Quot #", "Quot Date", "Customer", "State", 
+    "Mobile", "Sales Person", "Amount", "Quot Status", "Action"
   ];
 
   const renderRow = (item, idx) => (
     <tr key={item.id || idx} className="hover:bg-sky-50/25 transition-colors border-b border-slate-100">
-      <td className="px-4 py-3 text-center text-[11px] text-slate-500 whitespace-nowrap">{item.series || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-sky-600 font-bold whitespace-nowrap">{item.quotationNo || '-'}</td>
       <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{item.date || '-'}</td>
-      <td className="px-4 py-3 text-left text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.customerName || '-'}</td>
+      <td className="px-4 py-3 text-center text-xs font-semibold text-slate-900 whitespace-nowrap truncate max-w-[150px]">{item.customerName || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.state || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.mobileNumber || '-'}</td>
       <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.salesPerson || '-'}</td>
@@ -141,7 +135,7 @@ export default function QuotationList({ onConvertToInvoice }) {
           {item.status === 'Final' ? 'Completed' : (item.status || 'Draft')}
         </span>
       </td>
-      <td className={`px-4 py-3 text-center text-[11px] whitespace-nowrap ${getSupplyStatusColor(item.supplyStatus)}`}>{item.supplyStatus || '-'}</td>
+
       <td className="px-4 py-3 text-center text-xs whitespace-nowrap flex items-center justify-center gap-2">
         <button onClick={() => handleView(item)} className="p-1 bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white rounded transition shadow-sm" title="View/Edit">
           <Eye size={14} />
@@ -171,7 +165,7 @@ export default function QuotationList({ onConvertToInvoice }) {
         <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Customer</span> <span className="font-semibold text-slate-800">{item.customerName}</span></div>
         <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Sales Person</span> <span className="text-slate-600">{item.salesPerson}</span></div>
         <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Amount</span> <span className="font-bold text-emerald-600">₹{Number(item.totalAmount || 0).toLocaleString('en-IN')}</span></div>
-        <div><span className="text-slate-400 block text-[10px] uppercase font-bold">Supply Status</span> <span className={getSupplyStatusColor(item.supplyStatus)}>{item.supplyStatus || '-'}</span></div>
+
       </div>
     </div>
   );

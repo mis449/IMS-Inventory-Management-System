@@ -10,6 +10,8 @@ import InventoryHistory from './pages/InventoryForm/InventoryHistory';
 import Dasboard from './pages/Dashboard/Dasboard';
 import SalesModule from './pages/Sales/SalesModule';
 import PurchaseModule from './pages/Purchase/PurchaseModule';
+import OrderSummary from './pages/Sales/OrderSummary';
+import ItemTracker from './pages/ItemTracker/ItemTracker';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
@@ -54,6 +56,8 @@ function App() {
             <Route path="indent-history" element={<InventoryHistory />} />
             <Route path="sales" element={<SalesModule />} />
             <Route path="purchase" element={<PurchaseModule />} />
+            <Route path="order-summary" element={<OrderSummary />} />
+            <Route path="item-tracker" element={<ItemTracker />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

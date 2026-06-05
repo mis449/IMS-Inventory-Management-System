@@ -37,8 +37,21 @@ export default function VendorDetailsSection({
               setBasicInfo({...basicInfo, vendor: val});
               
               const matchedVendor = vendors.find(v => v.name === val);
-              if (matchedVendor && onVendorSelect) {
-                onVendorSelect(matchedVendor);
+              if (matchedVendor) {
+                setBasicInfo({
+                  ...basicInfo,
+                  vendor: val,
+                  address: matchedVendor.address || basicInfo.address,
+                  areaPinCode: matchedVendor.areaPinCode || basicInfo.areaPinCode,
+                  cityState: matchedVendor.cityState || basicInfo.cityState,
+                  state: matchedVendor.state || matchedVendor.cityState || basicInfo.state,
+                  email: matchedVendor.email || basicInfo.email,
+                  mobile: matchedVendor.mobile || basicInfo.mobile,
+                  priceList: matchedVendor.priceList || basicInfo.priceList
+                });
+                if (onVendorSelect) {
+                  onVendorSelect(matchedVendor);
+                }
               }
             }}
             onAdd={onOpenVendorModal}

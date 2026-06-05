@@ -20,28 +20,35 @@ export default function DispatchFormModal({ isOpen, onClose, initialData, onSave
 
   useEffect(() => {
     if (initialData && initialData.details && initialData.details.items) {
-      const mapped = initialData.details.items.map(item => {
-        if (item.type !== 'item') return item;
-        const ordered = Number(item.quantity || 0);
-        const dispatched = Number(item.dispatchedQty || 0);
-        const pending = Math.max(0, ordered - dispatched);
+      setItems(prevItems => {
+        return initialData.details.items.map(item => {
+          if (item.type !== 'item') return item;
+          const ordered = Number(item.quantity || 0);
+          const dispatched = Number(item.dispatchedQty || 0);
+          const pending = Math.max(0, ordered - dispatched);
 
-        // Find corresponding inventory item to get live stock
-        const invItem = inventoryItems.find(i => (i.ItemCode || i.code) === item.itemCode);
-        const hasRealStock = invItem && Number(invItem.StockQty || 0) > 0;
-        const stock = hasRealStock ? Number(invItem.StockQty) : 99;
-        const isDemoStock = !hasRealStock;
+          // Find corresponding inventory item to get live stock
+          const invItem = inventoryItems.find(i => (i.ItemCode || i.code) === item.itemCode);
+          const hasRealStock = invItem && Number(invItem.StockQty || 0) > 0;
+          const stock = hasRealStock ? Number(invItem.StockQty) : 99;
+          const isDemoStock = !hasRealStock;
 
-        return {
-          ...item,
-          orderedQty: ordered,
-          dispatchedQty: dispatched,
-          dispatchQty: pending,
-          stock: stock,
-          isDemoStock: isDemoStock
-        };
+          // Preserve user-modified dispatchQty if the item already exists in state
+          const existingItem = prevItems.find(i => i.id === item.id);
+          const currentDispatchQty = existingItem && existingItem.dispatchQty !== undefined 
+                                       ? existingItem.dispatchQty 
+                                       : pending;
+
+          return {
+            ...item,
+            orderedQty: ordered,
+            dispatchedQty: dispatched,
+            dispatchQty: currentDispatchQty,
+            stock: stock,
+            isDemoStock: isDemoStock
+          };
+        });
       });
-      setItems(mapped);
     }
   }, [initialData, inventoryItems]);
 
@@ -60,15 +67,11 @@ export default function DispatchFormModal({ isOpen, onClose, initialData, onSave
 
     let newQty = Number(item.dispatchQty) + delta;
     const pending = Math.max(0, Number(item.orderedQty || 0) - Number(item.dispatchedQty || 0));
-    const maxVal = Math.min(pending, item.stock || 0);
+    const maxVal = item.stock || 0;
     
     if (newQty < 0) newQty = 0;
     if (newQty > maxVal) {
-      if (newQty > pending) {
-        toast.error(`Quantity cannot exceed pending ordered quantity (${pending})`);
-      } else {
-        toast.error(`Quantity cannot exceed available stock (${item.stock || 0})`);
-      }
+      toast.error(`Quantity cannot exceed available stock (${item.stock || 0})`);
       newQty = maxVal;
     }
 
@@ -79,18 +82,19 @@ export default function DispatchFormModal({ isOpen, onClose, initialData, onSave
     const item = items.find(i => i.id === itemId);
     if (!item) return;
 
+    if (val === '') {
+      setItems(prev => prev.map(i => i.id === itemId ? { ...i, dispatchQty: '' } : i));
+      return;
+    }
+
     let newQty = Number(val);
     const pending = Math.max(0, Number(item.orderedQty || 0) - Number(item.dispatchedQty || 0));
-    const maxVal = Math.min(pending, item.stock || 0);
+    const maxVal = item.stock || 0;
     
     if (isNaN(newQty)) newQty = 0;
     if (newQty < 0) newQty = 0;
     if (newQty > maxVal) {
-      if (newQty > pending) {
-        toast.error(`Quantity cannot exceed pending ordered quantity (${pending})`);
-      } else {
-        toast.error(`Quantity cannot exceed available stock (${item.stock || 0})`);
-      }
+      toast.error(`Quantity cannot exceed available stock (${item.stock || 0})`);
       newQty = maxVal;
     }
 
@@ -302,7 +306,7 @@ export default function DispatchFormModal({ isOpen, onClose, initialData, onSave
                           className="w-10 h-full text-center text-xs font-bold text-sky-700 focus:outline-none focus:bg-sky-50"
                         />
                         <button type="button" onClick={() => handleUpdateDispatchQty(item.id, 1)} className="w-7 h-full text-slate-500 hover:bg-slate-100 flex items-center justify-center border-l border-slate-200 font-black">+</button>
-                        <button type="button" onClick={() => setExactDispatchQty(item.id, 0)} className="w-7 h-full text-red-500 hover:bg-red-50 flex items-center justify-center border-l border-slate-200 font-black text-[10px]">X</button>
+                        <button type="button" onClick={() => setExactDispatchQty(item.id, '')} className="w-7 h-full text-red-500 hover:bg-red-50 flex items-center justify-center border-l border-slate-200 font-black text-[10px]">X</button>
                       </div>
                     </td>
 

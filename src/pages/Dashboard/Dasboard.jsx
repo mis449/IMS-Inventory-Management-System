@@ -1,6 +1,10 @@
-  import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Search, RotateCcw, Box, Eye, Filter, RefreshCw, Layers, CheckCircle, Package } from 'lucide-react';
+import { Search, RotateCcw, Box, Eye, Filter, RefreshCw, Layers, CheckCircle, Package, Printer, Download, FileText, X, ChevronDown } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { format } from 'date-fns';
 import DataTable from '../../components/DataTable';
 import SearchableDropdown from '../../components/SearchableDropdown';
 import ModalView from '../../components/ModalView';
@@ -12,6 +16,11 @@ export default function Dasboard() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Export State
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportSelectedBrand, setExportSelectedBrand] = useState('All Brands');
+  const [exportActionType, setExportActionType] = useState('PDF');
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -136,6 +145,154 @@ export default function Dasboard() {
     };
   }, [items, computedStocks, transactions]);
 
+  const openExportModal = (type) => {
+    setExportActionType(type);
+    setIsExportModalOpen(true);
+  };
+
+  const handleExportSubmit = () => {
+    // Determine data to export
+    let dataToExport = filteredStocks;
+    if (exportSelectedBrand !== 'All Brands') {
+      dataToExport = filteredStocks.filter(item => (item.BrandName || item.brand) === exportSelectedBrand);
+    }
+
+    if (dataToExport.length === 0) {
+      toast.error(`No data found for ${exportSelectedBrand}`);
+      return;
+    }
+
+    if (exportActionType === 'Excel') {
+      exportToExcel(dataToExport);
+    } else {
+      exportToPdf(dataToExport, exportActionType === 'Print');
+    }
+
+    setIsExportModalOpen(false);
+  };
+
+  const exportToExcel = (data) => {
+    const exportData = data.map((item, idx) => ({
+      'Serial No': idx + 1,
+      'Item Code': item.ItemCode || item.code || '',
+      'Item Name': item.ItemName || item.name || '',
+      'Category': item.Category || item.category || '',
+      'Brand': item.BrandName || item.brand || '',
+      'Unit Price / MRP': Number(item.MRP || 0),
+      'Opening Quantity': item.openingQty || 0,
+      'Purchase Quantity': item.purchaseQty || 0,
+      'Sales Quantity': item.salesQty || 0,
+      'Current Stock': item.currentQty || 0
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventory');
+    
+    // Auto-adjust column widths
+    const wscols = Object.keys(exportData[0] || {}).map(() => ({ wch: 15 }));
+    wscols[2] = { wch: 45 }; // Item name wider
+    worksheet['!cols'] = wscols;
+
+    XLSX.writeFile(workbook, `Brand_Wise_Inventory_Report_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`);
+    toast.success('Excel downloaded successfully');
+  };
+
+  const exportToPdf = (data, isPrint = false) => {
+    const doc = new jsPDF('l', 'mm', 'a4'); // Always landscape for inventory
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Header
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42); // slate-900
+    doc.text('Brand Wise Inventory Report', 14, 20);
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Company: PAREKH GALLERIUM`, 14, 28);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Brand Filter: ${exportSelectedBrand}`, 14, 34);
+    doc.text(`Total Products: ${data.length}`, 14, 40);
+
+    doc.text(`Report Date: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}`, pageWidth - 14, 28, { align: 'right' });
+
+    // Separator line
+    doc.setDrawColor(226, 232, 240); // slate-200
+    doc.setLineWidth(0.5);
+    doc.line(14, 43, pageWidth - 14, 43);
+
+    // Table Data
+    const tableColumn = ["SN", "Item Code", "Item Name", "Category", "Brand", "MRP", "Op. Qty", "Pur. Qty", "Sal. Qty", "Cur. Stock"];
+    const tableRows = data.map((item, idx) => [
+      idx + 1,
+      item.ItemCode || item.code || '',
+      item.ItemName || item.name || '',
+      item.Category || item.category || '',
+      item.BrandName || item.brand || '',
+      `Rs ${Number(item.MRP || 0).toLocaleString('en-IN')}`,
+      item.openingQty || 0,
+      item.purchaseQty || 0,
+      item.salesQty || 0,
+      item.currentQty || 0
+    ]);
+
+    autoTable(doc, {
+      startY: 48,
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'grid',
+      styles: {
+        fontSize: 7,
+        cellPadding: 3,
+        overflow: 'linebreak',
+        font: 'helvetica',
+        lineColor: [226, 232, 240], // slate-200
+        lineWidth: 0.1,
+      },
+      headStyles: {
+        fillColor: [14, 165, 233], // sky-500
+        textColor: 255,
+        fontStyle: 'bold',
+        halign: 'center',
+        valign: 'middle'
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252] // slate-50
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 10 },
+        1: { halign: 'left', cellWidth: 25, fontStyle: 'bold' },
+        2: { halign: 'left', cellWidth: 'auto' }, // Item name
+        3: { halign: 'left', cellWidth: 22 },
+        4: { halign: 'left', cellWidth: 22 },
+        5: { halign: 'right', cellWidth: 22 },
+        6: { halign: 'center', cellWidth: 16 },
+        7: { halign: 'center', cellWidth: 16, textColor: [5, 150, 105] }, // emerald
+        8: { halign: 'center', cellWidth: 16, textColor: [225, 29, 72] }, // rose
+        9: { halign: 'center', cellWidth: 20, fontStyle: 'bold', textColor: [2, 132, 199] }, // sky-600
+      },
+      didDrawPage: function (data) {
+        // Footer
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184); // slate-400
+        const pageNumberStr = `Page ${doc.internal.getNumberOfPages()}`;
+        doc.text(pageNumberStr, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
+    });
+
+    if (isPrint) {
+      window.open(doc.output('bloburl'), '_blank');
+    } else {
+      doc.save(`Brand_Wise_Inventory_Report_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`);
+      toast.success('PDF downloaded successfully');
+    }
+  };
+
   const handleRowClick = (item) => {
     setSelectedItem(item);
     setIsModalOpen(true);
@@ -143,7 +300,7 @@ export default function Dasboard() {
 
   const tableHeaders = [
     "Serial No", "Item Code", "Item Name", "Category", "Brand", "Unit Price / MRP", 
-    "Opening Qty", "Purchase Qty", "Sales Qty", "Purchase Return Qty", "Sales Return Qty", "Current Qty", "Stock Level", "Action"
+    "Opening Qty", "Purchase Qty", "Sales Qty", "Purchase Return Qty", "Sales Return Qty", "Current Qty", "Stock Level"
   ];
 
   const renderRow = (item, idx) => {
@@ -152,7 +309,7 @@ export default function Dasboard() {
     const priceVal = Number(item.MRP || 0);
 
     return (
-      <tr key={item.ItmID || item.ItemCode} className="hover:bg-sky-50/25 transition-colors border-b border-slate-100">
+      <tr key={item.ItmID || item.ItemCode} onClick={() => handleRowClick(item)} className="hover:bg-sky-50/50 transition-colors border-b border-slate-100 cursor-pointer">
         <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{globalIdx}</td>
         <td className="px-4 py-3 text-center text-xs text-slate-900 font-bold whitespace-nowrap">{item.ItemCode}</td>
         <td className="px-4 py-3 text-justify text-xs font-semibold text-slate-900 whitespace-normal uppercase min-w-[350px]">{item.ItemName}</td>
@@ -172,15 +329,6 @@ export default function Dasboard() {
             {item.stockLevel}
           </span>
         </td>
-        <td className="px-4 py-3 text-center whitespace-nowrap text-xs">
-          <button 
-            onClick={() => handleRowClick(item)}
-            className="p-1 text-sky-600 hover:text-sky-900 rounded hover:bg-sky-50 transition"
-            title="View Details"
-          >
-            <Eye size={16} />
-          </button>
-        </td>
       </tr>
     );
   };
@@ -191,7 +339,7 @@ export default function Dasboard() {
     const priceVal = Number(item.MRP || 0);
 
     return (
-      <div key={item.ItmID || item.ItemCode} className="bg-white rounded-lg border border-slate-100 shadow-sm p-2.5 space-y-1.5 transition-all hover:shadow-md hover:border-sky-100">
+      <div key={item.ItmID || item.ItemCode} onClick={() => handleRowClick(item)} className="bg-white rounded-lg border border-slate-100 shadow-sm p-2.5 space-y-1.5 transition-all hover:shadow-md hover:border-sky-100 cursor-pointer">
         <div className="flex justify-between items-center pb-1.5 border-b border-slate-50">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="w-4 h-4 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-[8px] font-black text-slate-500 flex-shrink-0">
@@ -223,13 +371,7 @@ export default function Dasboard() {
           </div>
         </div>
 
-        <div className="flex justify-between items-center border-t border-slate-100 pt-1.5 text-[10px]">
-          <button 
-            onClick={() => handleRowClick(item)}
-            className="flex items-center gap-1 text-sky-600 font-bold hover:text-sky-900"
-          >
-            <Eye size={10} /> View
-          </button>
+        <div className="flex justify-end items-center border-t border-slate-100 pt-1.5 text-[10px]">
           <span className={`px-1.5 py-0.5 rounded text-[7px] uppercase font-black ${
             isFull ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
           }`}>
@@ -318,9 +460,35 @@ export default function Dasboard() {
       {/* Divider */}
       <div className="border-b border-slate-100 mx-2 sm:mx-0"></div>
 
-      {/* Filters Toolbar */}
+      {/* Filters & Actions Toolbar */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 lg:gap-4 w-full px-2 sm:px-0">
-        <div className="flex flex-col lg:flex-row w-full gap-2 lg:gap-3 items-center">
+        
+        {/* Action Buttons (Export/Print) */}
+        <div className="flex gap-2 w-full lg:w-auto order-2 lg:order-1 justify-end lg:justify-start">
+          <button
+            onClick={() => openExportModal('PDF')}
+            className="flex flex-1 lg:flex-none items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 rounded-xl px-3 py-2 text-xs md:text-sm font-semibold transition-colors shadow-sm"
+            title="Export PDF"
+          >
+            <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+          </button>
+          <button
+            onClick={() => openExportModal('Excel')}
+            className="flex flex-1 lg:flex-none items-center justify-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 rounded-xl px-3 py-2 text-xs md:text-sm font-semibold transition-colors shadow-sm"
+            title="Export Excel"
+          >
+            <Download size={16} /> <span className="hidden sm:inline">Excel</span>
+          </button>
+          <button
+            onClick={() => openExportModal('Print')}
+            className="flex flex-1 lg:flex-none items-center justify-center gap-1.5 bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 rounded-xl px-3 py-2 text-xs md:text-sm font-semibold transition-colors shadow-sm"
+            title="Print Report"
+          >
+            <Printer size={16} /> <span className="hidden sm:inline">Print</span>
+          </button>
+        </div>
+
+        <div className="flex flex-col lg:flex-row w-full lg:flex-[2] gap-2 lg:gap-3 items-center order-1 lg:order-2 justify-end">
           
           {/* Search items box */}
           <div className="flex items-center gap-2 w-full lg:w-auto lg:flex-[1.5]">
@@ -570,6 +738,77 @@ export default function Dasboard() {
             )}
           </div>
         </ModalView>
+      )}
+
+      {/* Export Modal Overlay */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                {exportActionType === 'Excel' ? <Download className="text-emerald-500" size={20} /> :
+                 exportActionType === 'PDF' ? <FileText className="text-rose-500" size={20} /> :
+                 <Printer className="text-slate-600" size={20} />}
+                Export {exportActionType} Options
+              </h3>
+              <button 
+                onClick={() => setIsExportModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-1 rounded-lg transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Select Brand Filter</label>
+                <p className="text-xs text-slate-500 mb-3">Choose a specific brand to export, or select 'All Brands' for a complete inventory report.</p>
+                <div className="relative">
+                  <select
+                    value={exportSelectedBrand}
+                    onChange={(e) => setExportSelectedBrand(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 appearance-none cursor-pointer transition-all"
+                  >
+                    <option value="All Brands">📦 All Brands (Complete Inventory)</option>
+                    <optgroup label="Available Brands">
+                      {brandsList.map(brand => (
+                        <option key={brand} value={brand}>{brand}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3.5 text-slate-400 pointer-events-none" size={16} />
+                </div>
+              </div>
+
+              <div className="bg-sky-50 text-sky-800 p-3 rounded-lg text-xs font-medium border border-sky-100 flex items-start gap-2">
+                <Filter size={16} className="mt-0.5 text-sky-600 flex-shrink-0" />
+                <p>The exported report will also respect any other active dashboard filters (Search, Category, Stock Level).</p>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <button
+                onClick={() => setIsExportModalOpen(false)}
+                className="px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExportSubmit}
+                className={`px-5 py-2 text-sm font-bold text-white rounded-xl shadow-sm transition-all flex items-center gap-2 ${
+                  exportActionType === 'Excel' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20' : 
+                  exportActionType === 'PDF' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' : 
+                  'bg-sky-600 hover:bg-sky-700 shadow-sky-600/20'
+                }`}
+              >
+                {exportActionType === 'Excel' ? <Download size={16} /> :
+                 exportActionType === 'PDF' ? <FileText size={16} /> :
+                 <Printer size={16} />}
+                Generate {exportActionType}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
