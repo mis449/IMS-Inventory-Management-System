@@ -25,7 +25,6 @@ export default function Dasboard() {
   // Filters State
   const [filters, setFilters] = useState({
     searchQuery: '',
-    category: '',
     brand: '',
     stockLevel: '' // 'Stock Full' | 'Stock Low' | ''
   });
@@ -42,7 +41,6 @@ export default function Dasboard() {
   const handleClearFilters = () => {
     setFilters({
       searchQuery: '',
-      category: '',
       brand: '',
       stockLevel: ''
     });
@@ -50,10 +48,7 @@ export default function Dasboard() {
     toast.success('Filters cleared');
   };
 
-  // Compile active categories and brands for filtering dropdowns
-  const categoriesList = useMemo(() => {
-    return Array.from(new Set(items.map(i => i.Category || i.category))).filter(Boolean).sort();
-  }, [items]);
+  // Compile active brands for filtering dropdowns
 
   const brandsList = useMemo(() => {
     return Array.from(new Set(items.map(i => i.BrandName || i.brand))).filter(Boolean).sort();
@@ -103,12 +98,10 @@ export default function Dasboard() {
   // Apply filters
   const filteredStocks = useMemo(() => {
     return computedStocks.filter(item => {
-      const cat = item.Category || item.category || '';
       const brnd = item.BrandName || item.brand || '';
       const name = item.ItemName || item.name || '';
       const code = item.ItemCode || item.code || '';
 
-      if (filters.category && cat !== filters.category) return false;
       if (filters.brand && brnd !== filters.brand) return false;
       if (filters.stockLevel && item.stockLevel !== filters.stockLevel) return false;
 
@@ -117,8 +110,7 @@ export default function Dasboard() {
         return (
           code.toLowerCase().includes(q) ||
           name.toLowerCase().includes(q) ||
-          brnd.toLowerCase().includes(q) ||
-          cat.toLowerCase().includes(q)
+          brnd.toLowerCase().includes(q)
         );
       }
       return true;
@@ -176,7 +168,6 @@ export default function Dasboard() {
       'Serial No': idx + 1,
       'Item Code': item.ItemCode || item.code || '',
       'Item Name': item.ItemName || item.name || '',
-      'Category': item.Category || item.category || '',
       'Brand': item.BrandName || item.brand || '',
       'Unit Price / MRP': Number(item.MRP || 0),
       'Opening Quantity': item.openingQty || 0,
@@ -226,12 +217,11 @@ export default function Dasboard() {
     doc.line(14, 43, pageWidth - 14, 43);
 
     // Table Data
-    const tableColumn = ["SN", "Item Code", "Item Name", "Category", "Brand", "MRP", "Op. Qty", "Pur. Qty", "Sal. Qty", "Cur. Stock"];
+    const tableColumn = ["SN", "Item Code", "Item Name", "Brand", "MRP", "Op. Qty", "Pur. Qty", "Sal. Qty", "Cur. Stock"];
     const tableRows = data.map((item, idx) => [
       idx + 1,
       item.ItemCode || item.code || '',
       item.ItemName || item.name || '',
-      item.Category || item.category || '',
       item.BrandName || item.brand || '',
       `Rs ${Number(item.MRP || 0).toLocaleString('en-IN')}`,
       item.openingQty || 0,
@@ -268,12 +258,11 @@ export default function Dasboard() {
         1: { halign: 'left', cellWidth: 25, fontStyle: 'bold' },
         2: { halign: 'left', cellWidth: 'auto' }, // Item name
         3: { halign: 'left', cellWidth: 22 },
-        4: { halign: 'left', cellWidth: 22 },
-        5: { halign: 'right', cellWidth: 22 },
-        6: { halign: 'center', cellWidth: 16 },
-        7: { halign: 'center', cellWidth: 16, textColor: [5, 150, 105] }, // emerald
-        8: { halign: 'center', cellWidth: 16, textColor: [225, 29, 72] }, // rose
-        9: { halign: 'center', cellWidth: 20, fontStyle: 'bold', textColor: [2, 132, 199] }, // sky-600
+        4: { halign: 'right', cellWidth: 22 },
+        5: { halign: 'center', cellWidth: 16 },
+        6: { halign: 'center', cellWidth: 16, textColor: [5, 150, 105] }, // emerald
+        7: { halign: 'center', cellWidth: 16, textColor: [225, 29, 72] }, // rose
+        8: { halign: 'center', cellWidth: 20, fontStyle: 'bold', textColor: [2, 132, 199] }, // sky-600
       },
       didDrawPage: function (data) {
         // Footer
@@ -299,7 +288,7 @@ export default function Dasboard() {
   };
 
   const tableHeaders = [
-    "Serial No", "Item Code", "Item Name", "Category", "Brand", "Unit Price / MRP", 
+    "Serial No", "Item Code", "Item Name", "Brand", "Unit Price / MRP", 
     "Opening Qty", "Purchase Qty", "Sales Qty", "Purchase Return Qty", "Sales Return Qty", "Current Qty", "Stock Level"
   ];
 
@@ -313,7 +302,6 @@ export default function Dasboard() {
         <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{globalIdx}</td>
         <td className="px-4 py-3 text-center text-xs text-slate-900 font-bold whitespace-nowrap">{item.ItemCode}</td>
         <td className="px-4 py-3 text-justify text-xs font-semibold text-slate-900 whitespace-normal uppercase min-w-[350px]">{item.ItemName}</td>
-        <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.Category}</td>
         <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.BrandName}</td>
         <td className="px-4 py-3 text-center text-xs text-slate-700 font-medium whitespace-nowrap">₹{priceVal.toLocaleString('en-IN')}</td>
         <td className="px-4 py-3 text-center text-xs text-slate-500 font-bold whitespace-nowrap">{item.openingQty}</td>
@@ -354,8 +342,8 @@ export default function Dasboard() {
 
         <div className="grid grid-cols-2 gap-1.5 text-[10px] bg-slate-50 rounded-md p-1.5 border border-slate-100/50">
           <div>
-            <span className="text-slate-400 block uppercase text-[7px] tracking-tight">Category / Brand</span>
-            <span className="text-slate-700 font-medium truncate block">{item.Category} ({item.BrandName})</span>
+            <span className="text-slate-400 block uppercase text-[7px] tracking-tight">Brand</span>
+            <span className="text-slate-700 font-medium truncate block">{item.BrandName}</span>
           </div>
           <div>
             <span className="text-slate-400 block uppercase text-[7px] tracking-tight">Unit Price</span>
@@ -528,19 +516,6 @@ export default function Dasboard() {
           {/* Filtering dropdowns */}
           <div className={`${showMobileFilters ? 'flex' : 'hidden'} lg:flex flex-col lg:flex-row lg:flex-nowrap gap-2 w-full lg:w-auto lg:flex-[6] overflow-visible`}>
             
-            {/* Category Dropdown */}
-            <div className="flex-1 min-w-0 lg:min-w-[160px]">
-              <SearchableDropdown
-                options={categoriesList.map(c => ({ value: c, label: c }))}
-                value={filters.category}
-                onChange={(val) => setFilters({ ...filters, category: val })}
-                placeholder="All Categories"
-                className="h-[38px]"
-                height="h-[38px]"
-                rounded="rounded-xl"
-              />
-            </div>
-
             {/* Brand Dropdown */}
             <div className="flex-1 min-w-0 lg:min-w-[160px]">
               <SearchableDropdown

@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { fetchAndMergeInventory } from '../services/api';
 import { supabase } from '../lib/supabaseClient';
 
 const useDataStore = create((set, get) => ({
@@ -176,16 +175,146 @@ const useDataStore = create((set, get) => ({
     }
   },
 
-  // Fetch items from the merged API endpoint
+  // Add a new item to Supabase item table
+  addNewItem: async (itemData) => {
+    try {
+      const payload = {
+        ItemCode: itemData.ItemCode,
+        ItemName: itemData.ItemName,
+        ITMBrandName: itemData.BrandName,
+        ItmQtyRate: Number(itemData.MRP) || 0,
+        product_image_url: itemData.ImageURL || null
+      };
+      
+      // Attempt to save to Supabase
+      const { data, error } = await supabase.from('item').insert([payload]).select();
+      if (error) throw error;
+      
+      // Update local state directly to save time (avoid fetching 20,000 items again)
+      const newItem = data[0];
+      const formattedItem = {
+        ...newItem,
+        ItmID: newItem.id,
+        ItemCode: newItem.ItemCode,
+        ItemName: newItem.ItemName,
+        BrandName: newItem.ITMBrandName || '',
+        MRP: Number(newItem.ItmQtyRate) || 0,
+        Thumbnail: newItem.product_image_url || null,
+      };
+      set({ items: [formattedItem, ...get().items] });
+
+      return { success: true, data };
+    } catch (e) {
+      console.error('Error adding new item:', e);
+      return { success: false, error: e.message || 'Failed to add item' };
+    }
+  },
+
+  // Update an existing item in Supabase
+  updateItem: async (id, itemData) => {
+    try {
+      const payload = {
+        ItemCode: itemData.ItemCode,
+        ItemName: itemData.ItemName,
+        ITMBrandName: itemData.BrandName,
+        ItmQtyRate: Number(itemData.MRP) || 0,
+        product_image_url: itemData.ImageURL || null
+      };
+      
+      const { data, error } = await supabase.from('item').update(payload).eq('id', id).select();
+      if (error) throw error;
+      
+      // Update local state directly
+      if (data && data.length > 0) {
+        const updatedItem = data[0];
+        const updatedItemsList = get().items.map(item => {
+          if (item.ItmID === id || item.id === id) {
+            return {
+              ...item,
+              ItemCode: updatedItem.ItemCode,
+              ItemName: updatedItem.ItemName,
+              BrandName: updatedItem.ITMBrandName || '',
+              MRP: Number(updatedItem.ItmQtyRate) || 0,
+              Thumbnail: updatedItem.product_image_url || null,
+            };
+          }
+          return item;
+        });
+        set({ items: updatedItemsList });
+      }
+
+      return { success: true, data };
+    } catch (e) {
+      console.error('Error updating item:', e);
+      return { success: false, error: e.message || 'Failed to update item' };
+    }
+  },
+
+  // Fetch items from the Supabase item table
   fetchItems: async (force = false) => {
     if (get().items.length > 0 && !force) return;
     
     set({ isLoading: true, error: null });
     try {
-      const mergedData = await fetchAndMergeInventory(158000, 165000);
-      set({ items: mergedData, isLoading: false });
+      let allData = [];
+      let fetchMore = true;
+      let from = 0;
+      const step = 1000;
+
+      while (fetchMore) {
+        const { data, error } = await supabase
+          .from('item')
+          .select('*')
+          .range(from, from + step - 1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allData = [...allData, ...data];
+          from += step;
+        }
+
+        if (!data || data.length < step) {
+          fetchMore = false;
+        }
+      }
+
+      console.log(`Total records fetched from item table: ${allData.length}`);
+
+      if (allData.length === 0) {
+        set({ items: [], isLoading: false });
+        return;
+      }
+
+      const itemsData = allData.map(item => ({
+        ...item,
+        ItmID: item.ItmID || item.id || '',
+        ItemCode: item.ItmCd || item.ItemCode || item.item_code || '',
+        ItemName: item.ItmNm || item.ItemName || item.item_name || '',
+        BrandName: item.ItmBrdNm || item.ITMBrandName || item.BrandName || item.brand_name || item.brand || '',
+        Category: item.ItmCatNm?.trim() || item.Category || item.category || '',
+        Size: item.ItmSize || item.Size || item.size || '',
+        Color: item.ItmColor || item.Color || item.color || '',
+        UOM: item.ItmQtyUOM || item.UOM || item.uom || 'PCS',
+        HSNCode: item.ItmHSNCd || item.HSNCode || item.hsn_code || '',
+        Packing: item.ItmStdPking || item.Packing || item.packing || 1,
+        Weight: item.ItmWt || item.Weight || item.weight || 0,
+        Thumbnail: item.product_image_url || item.ItmThmbnl || item.Thumbnail || item.thumbnail || '',
+        Notes: item.ItmNotes || item.Notes || item.notes || '',
+        MRP: Number(item.ItmQtyRate || item.ItmMRP || item.MRP || item.mrp || item.price || 0),
+        StockQty: Number(item.ItmStdStkQty || item.StockQty || item.stock_qty || 0),
+        DisplayQty: Number(item.ItmDispQty || item.DisplayQty || item.display_qty || 0),
+        ReservedQty: Number(item.ItmRsrvStkQty || item.ReservedQty || item.reserved_qty || 0),
+        OpeningQty: Number(item.OpeningQty || item.opening_qty || 0)
+      }));
+
+      const totoCount = itemsData.filter(i => (i.BrandName || '').toUpperCase() === 'TOTO').length;
+      console.log(`Total TOTO brand records fetched: ${totoCount}`);
+      console.log(`Total records displayed after filtering (total items in state): ${itemsData.length}`);
+
+      set({ items: itemsData, isLoading: false });
     } catch (err) {
-      set({ error: err.message || 'Failed to load catalog data', isLoading: false });
+      set({ error: err.message || 'Failed to load catalog data from Supabase', isLoading: false });
     }
   },
 

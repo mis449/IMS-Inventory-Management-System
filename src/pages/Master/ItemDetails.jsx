@@ -1,19 +1,37 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Search, RotateCcw, Box, Tag, Layers, DollarSign, Filter, RefreshCw } from 'lucide-react';
+import { Search, RotateCcw, Box, Tag, Layers, DollarSign, Filter, RefreshCw, Plus, Image as ImageIcon, Edit } from 'lucide-react';
 import DataTable from '../../components/DataTable';
 import SearchableDropdown from '../../components/SearchableDropdown';
+import ModalView from '../../components/ModalView';
 import useDataStore from '../../store/dataStore';
 
 export default function ItemDetails() {
-  const { items, isLoading, error, fetchItems } = useDataStore();
+  const { items, isLoading, error, fetchItems, addNewItem, updateItem } = useDataStore();
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newItemData, setNewItemData] = useState({
+    ItemCode: '',
+    ItemName: '',
+    BrandName: '',
+    MRP: '',
+    ImageURL: ''
+  });
+  const [editFormData, setEditFormData] = useState({
+    id: '',
+    ItemCode: '',
+    ItemName: '',
+    BrandName: '',
+    MRP: '',
+    ImageURL: ''
+  });
 
   // Filters State
   const [filters, setFilters] = useState({
     searchQuery: '',
-    category: '',
     brand: '',
     itemName: ''
   });
@@ -29,7 +47,6 @@ export default function ItemDetails() {
   const handleClearFilters = () => {
     setFilters({
       searchQuery: '',
-      category: '',
       brand: '',
       itemName: ''
     });
@@ -37,10 +54,58 @@ export default function ItemDetails() {
     toast.success('Filters cleared');
   };
 
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    if (!newItemData.ItemCode || !newItemData.ItemName) {
+      toast.error('Item Code and Item Name are required');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    const res = await addNewItem(newItemData);
+    setIsSubmitting(false);
+    
+    if (res.success) {
+      toast.success('Product added successfully!');
+      setIsAddModalOpen(false);
+      setNewItemData({ ItemCode: '', ItemName: '', BrandName: '', MRP: '', ImageURL: '' });
+    } else {
+      toast.error(res.error || 'Failed to add product');
+    }
+  };
+
+  const handleEditClick = (item) => {
+    setEditFormData({
+      id: item.ItmID || item.id,
+      ItemCode: item.ItemCode || '',
+      ItemName: item.ItemName || '',
+      BrandName: item.BrandName || '',
+      MRP: item.MRP || '',
+      ImageURL: item.Thumbnail || item.product_image_url || ''
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    if (!editFormData.ItemCode || !editFormData.ItemName) {
+      toast.error('Item Code and Item Name are required');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    const res = await updateItem(editFormData.id, editFormData);
+    setIsSubmitting(false);
+    
+    if (res.success) {
+      toast.success('Product updated successfully!');
+      setIsEditModalOpen(false);
+    } else {
+      toast.error(res.error || 'Failed to update product');
+    }
+  };
+
   // Unique lists for Filters Dropdowns
-  const categoriesList = useMemo(() => {
-    return Array.from(new Set(items.map(i => i.Category || i.category))).filter(Boolean).sort();
-  }, [items]);
 
   const brandsList = useMemo(() => {
     return Array.from(new Set(items.map(i => i.BrandName || i.brand))).filter(Boolean).sort();
@@ -53,12 +118,10 @@ export default function ItemDetails() {
   // Apply filters
   const filteredItems = useMemo(() => {
     return items.filter(item => {
-      const cat = item.Category || item.category || '';
       const brnd = item.BrandName || item.brand || '';
       const name = item.ItemName || item.name || '';
       const code = item.ItemCode || item.code || '';
 
-      if (filters.category && cat !== filters.category) return false;
       if (filters.brand && brnd !== filters.brand) return false;
       if (filters.itemName && name !== filters.itemName) return false;
 
@@ -67,8 +130,7 @@ export default function ItemDetails() {
         return (
           code.toLowerCase().includes(q) ||
           name.toLowerCase().includes(q) ||
-          brnd.toLowerCase().includes(q) ||
-          cat.toLowerCase().includes(q)
+          brnd.toLowerCase().includes(q)
         );
       }
       return true;
@@ -82,7 +144,7 @@ export default function ItemDetails() {
   );
 
   const tableHeaders = [
-    "Serial No", "Item Code", "Item Name", "Brand", "Category", "Unit Price / MRP"
+    "Serial No", "Image", "Item Code", "Item Name", "Brand", "Unit Price / MRP", "Actions"
   ];
 
   const renderRow = ( item, idx) => {
@@ -91,11 +153,28 @@ export default function ItemDetails() {
     return (
       <tr key={item.ItmID || item.code} className="hover:bg-sky-50/25 transition-colors border-b border-gray-100">
         <td className="px-4 py-3 text-center text-xs text-slate-500 whitespace-nowrap">{globalIdx}</td>
+        <td className="px-4 py-3 text-center">
+          {item.Thumbnail ? (
+            <img src={item.Thumbnail} alt={item.ItemName} className="w-9 h-9 rounded-lg object-cover border border-slate-200 mx-auto bg-slate-50" />
+          ) : (
+            <div className="w-9 h-9 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+              <ImageIcon size={14} />
+            </div>
+          )}
+        </td>
         <td className="px-4 py-3 text-center text-xs text-slate-900 font-bold whitespace-nowrap">{item.ItemCode}</td>
         <td className="px-4 py-3 text-justify text-xs font-semibold text-slate-900 whitespace-normal uppercase min-w-[350px]">{item.ItemName}</td>
         <td className="px-4 py-3 text-center text-[11px] text-slate-700 whitespace-nowrap">{item.BrandName}</td>
-        <td className="px-4 py-3 text-center text-[11px] text-slate-600 whitespace-nowrap">{item.Category}</td>
         <td className="px-4 py-3 text-center text-xs text-emerald-600 font-bold whitespace-nowrap">₹{priceVal.toLocaleString('en-IN')}</td>
+        <td className="px-4 py-3 text-center whitespace-nowrap">
+          <button 
+            onClick={() => handleEditClick(item)}
+            className="p-1.5 bg-slate-50 text-sky-600 hover:bg-sky-100 hover:text-sky-700 rounded-lg transition-colors border border-slate-200 shadow-sm"
+            title="Edit Product"
+          >
+            <Edit size={14} />
+          </button>
+        </td>
       </tr>
     );
   };
@@ -118,10 +197,7 @@ export default function ItemDetails() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 rounded-lg p-2 border border-slate-100/50">
-          <div>
-            <span className="text-gray-400 block uppercase text-[8px] tracking-tight">Category</span>
-            <span className="text-gray-700 font-medium">{item.Category}</span>
-          </div>
+
           <div>
             <span className="text-gray-400 block uppercase text-[8px] tracking-tight">Brand</span>
             <span className="text-gray-700 font-medium">{item.BrandName}</span>
@@ -176,6 +252,16 @@ export default function ItemDetails() {
                 className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 text-xs md:text-sm h-[38px] transition-all outline-none"
               />
             </div>
+
+            {/* Mobile Add Product Button */}
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="lg:hidden flex items-center justify-center bg-sky-600 hover:bg-sky-700 text-white rounded-xl h-[38px] w-[38px] flex-shrink-0 shadow-sm transition active:scale-95"
+              title="Add Product"
+            >
+              <Plus size={18} />
+            </button>
+
             <button
                onClick={() => setShowMobileFilters(!showMobileFilters)}
                className={`lg:hidden flex items-center justify-center rounded-xl shadow-sm h-[38px] w-[38px] flex-shrink-0 transition-all ${showMobileFilters ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'}`}
@@ -202,18 +288,7 @@ export default function ItemDetails() {
           {/* Filtering dropdowns */}
           <div className={`${showMobileFilters ? 'flex' : 'hidden'} lg:flex flex-col lg:flex-row lg:flex-nowrap gap-2 w-full lg:w-auto lg:flex-[6] overflow-visible`}>
             
-            {/* Category Dropdown */}
-            <div className="flex-1 min-w-0 lg:min-w-[160px]">
-              <SearchableDropdown
-                options={categoriesList.map(c => ({ value: c, label: c }))}
-                value={filters.category}
-                onChange={(val) => setFilters({ ...filters, category: val })}
-                placeholder="All Categories"
-                className="h-[38px]"
-                height="h-[38px]"
-                rounded="rounded-xl"
-              />
-            </div>
+
 
             {/* Brand Dropdown */}
             <div className="flex-1 min-w-0 lg:min-w-[160px]">
@@ -247,6 +322,13 @@ export default function ItemDetails() {
               title="Clear Filters"
             >
               <RotateCcw size={16} />
+            </button>
+
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="hidden lg:flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl px-4 h-[38px] flex-shrink-0 shadow-sm transition active:scale-95 font-semibold text-sm whitespace-nowrap ml-1"
+            >
+              <Plus size={16} /> <span>Add Product</span>
             </button>
 
           </div>
@@ -284,6 +366,201 @@ export default function ItemDetails() {
           />
         )}
       </div>
+
+      {/* Add Product Modal */}
+      {isAddModalOpen && (
+        <ModalView
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          title="Add New Product"
+          maxWidth="max-w-md"
+        >
+          <form onSubmit={handleAddProduct} className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Item Code *</label>
+              <input
+                type="text"
+                required
+                value={newItemData.ItemCode}
+                onChange={(e) => setNewItemData({ ...newItemData, ItemCode: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                placeholder="e.g. ITM-1001"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Item Name *</label>
+              <input
+                type="text"
+                required
+                value={newItemData.ItemName}
+                onChange={(e) => setNewItemData({ ...newItemData, ItemName: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                placeholder="e.g. Premium Ceramic Tile"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Brand</label>
+                <input
+                  type="text"
+                  value={newItemData.BrandName}
+                  onChange={(e) => setNewItemData({ ...newItemData, BrandName: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  placeholder="e.g. TOTO"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Unit Price / MRP</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-[11px] text-slate-500 font-bold text-sm">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={newItemData.MRP}
+                    onChange={(e) => setNewItemData({ ...newItemData, MRP: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Product Image (Optional)</label>
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
+                  <ImageIcon size={18} />
+                </div>
+                <input
+                  type="text"
+                  value={newItemData.ImageURL}
+                  onChange={(e) => setNewItemData({ ...newItemData, ImageURL: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  placeholder="Paste Image URL or Base64 here..."
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1.5 ml-12">Currently supports image URLs. Storage bucket configuration required for direct file uploads.</p>
+            </div>
+
+            <div className="pt-4 flex gap-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isSubmitting ? <RefreshCw className="animate-spin" size={18} /> : 'Save Product'}
+              </button>
+            </div>
+          </form>
+        </ModalView>
+      )}
+
+      {/* Edit Product Modal */}
+      {isEditModalOpen && (
+        <ModalView
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title="Edit Product"
+          maxWidth="max-w-md"
+        >
+          <form onSubmit={handleUpdateProduct} className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Item Code *</label>
+              <input
+                type="text"
+                required
+                value={editFormData.ItemCode}
+                onChange={(e) => setEditFormData({ ...editFormData, ItemCode: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                placeholder="e.g. ITM-1001"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Item Name *</label>
+              <input
+                type="text"
+                required
+                value={editFormData.ItemName}
+                onChange={(e) => setEditFormData({ ...editFormData, ItemName: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                placeholder="e.g. Premium Ceramic Tile"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Brand</label>
+                <input
+                  type="text"
+                  value={editFormData.BrandName}
+                  onChange={(e) => setEditFormData({ ...editFormData, BrandName: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  placeholder="e.g. TOTO"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Unit Price / MRP</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-[11px] text-slate-500 font-bold text-sm">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editFormData.MRP}
+                    onChange={(e) => setEditFormData({ ...editFormData, MRP: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Product Image (Optional)</label>
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
+                  <ImageIcon size={18} />
+                </div>
+                <input
+                  type="text"
+                  value={editFormData.ImageURL}
+                  onChange={(e) => setEditFormData({ ...editFormData, ImageURL: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  placeholder="Paste Image URL or Base64 here..."
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 flex gap-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isSubmitting ? <RefreshCw className="animate-spin" size={18} /> : 'Update Product'}
+              </button>
+            </div>
+          </form>
+        </ModalView>
+      )}
 
     </div>
   );
