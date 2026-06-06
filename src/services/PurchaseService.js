@@ -92,8 +92,13 @@ export const getPurchases = async () => {
 };
 
 export const createPurchase = async (data) => {
-  const { count } = await supabase.from('purchase').select('*', { count: 'exact', head: true });
-  const docNo = data.purchaseNo || data.docNo || `PUR-${String((count || 0) + 1).padStart(4, '0')}`;
+  const { data: lastRecord } = await supabase.from('purchase').select('purchase_no').order('created_at', { ascending: false }).limit(1);
+  let nextNum = 1;
+  if (lastRecord && lastRecord.length > 0 && lastRecord[0].purchase_no) {
+    const match = lastRecord[0].purchase_no.match(/\d+$/);
+    if (match) nextNum = parseInt(match[0], 10) + 1;
+  }
+  const docNo = data.purchaseNo || data.docNo || `PUR-${String(nextNum).padStart(4, '0')}`;
   
   const d = data.details || {};
   const headerInfo = d.headerInfo || {};

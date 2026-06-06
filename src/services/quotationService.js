@@ -37,8 +37,13 @@ export const getQuotations = async () => {
 };
 
 export const createQuotation = async (data) => {
-  const { count } = await supabase.from('quotation').select('*', { count: 'exact', head: true });
-  const docNo = `QUOT-${String((count || 0) + 1).padStart(4, '0')}`;
+  const { data: lastRecord } = await supabase.from('quotation').select('quotation_no').order('created_at', { ascending: false }).limit(1);
+  let nextNum = 1;
+  if (lastRecord && lastRecord.length > 0 && lastRecord[0].quotation_no) {
+    const match = lastRecord[0].quotation_no.match(/\d+$/);
+    if (match) nextNum = parseInt(match[0], 10) + 1;
+  }
+  const docNo = `QUOT-${String(nextNum).padStart(4, '0')}`;
   
   const insertData = {
     id: String(Date.now()),

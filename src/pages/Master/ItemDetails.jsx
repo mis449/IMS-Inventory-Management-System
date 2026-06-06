@@ -435,9 +435,13 @@ export default function ItemDetails() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Product Image (Optional)</label>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
-                  <ImageIcon size={18} />
+              <div className="flex items-center gap-3">
+                <div className="w-20 h-20 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0 overflow-hidden">
+                  {newItemData.ImageURL ? (
+                    <img src={newItemData.ImageURL} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon size={24} />
+                  )}
                 </div>
                 <input
                   type="text"
@@ -533,9 +537,13 @@ export default function ItemDetails() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Product Image (Optional)</label>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
-                  <ImageIcon size={18} />
+              <div className="flex items-center gap-3">
+                <div className="w-20 h-20 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0 overflow-hidden">
+                  {editFormData.ImageURL ? (
+                    <img src={editFormData.ImageURL} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon size={24} />
+                  )}
                 </div>
                 <input
                   type="text"

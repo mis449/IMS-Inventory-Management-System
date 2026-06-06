@@ -50,7 +50,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const adminMenuItems = [
     { path: '/dashboard',           icon: TrendingUp,     label: 'Dashboard' },
-    { path: '/create-indent',       icon: FilePlus,       label: 'Inventory Form' },
+    { path: '/create-indent',       icon: Package,       label: 'Inventory' },
     { path: '/master',              icon: LayoutGrid,     label: 'Item Details' },
     { path: '/purchase',            icon: ShoppingCart,   label: 'Purchase' },
     { path: '/sales',               icon: FileText,       label: 'Sales' },
@@ -60,7 +60,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   ];
 
   const employeeMenuItems = [
-    { path: '/create-indent', icon: FilePlus,     label: 'Inventory Form' },
+    { path: '/create-indent', icon: Package,     label: 'Inventory' },
     { path: '/master',        icon: LayoutGrid,   label: 'Item Details' },
     { path: '/purchase',      icon: ShoppingCart, label: 'Purchase' },
     { path: '/sales',         icon: FileText,     label: 'Sales' },

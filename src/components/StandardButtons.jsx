@@ -39,7 +39,8 @@ export const FormActionButtons = ({
   loading = false,
   className = "",
   formId = null,
-  extraButton = null
+  extraButton = null,
+  hideSubmit = false
 }) => {
   return (
     <div className={`flex gap-3 items-center ${className}`}>
@@ -58,25 +59,27 @@ export const FormActionButtons = ({
         </div>
       )}
 
-      <button
-        type={onSubmit ? "button" : "submit"}
-        form={formId}
-        onClick={onSubmit}
-        disabled={loading}
-        className="flex-[1.5] bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 shadow-md shadow-sky-100 text-xs uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-      >
-        {loading ? (
-          <>
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            <span className="hidden md:block">Processing...</span>
-          </>
-        ) : (
-          <>
-            <Save size={16} className="block md:hidden" />
-            <span className="hidden md:block">{submitText}</span>
-          </>
-        )}
-      </button>
+      {!hideSubmit && (
+        <button
+          type={onSubmit ? "button" : "submit"}
+          form={formId}
+          onClick={onSubmit}
+          disabled={loading}
+          className="flex-[1.5] bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-xl transition-all active:scale-95 shadow-md shadow-sky-100 text-xs uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="hidden md:block">Processing...</span>
+            </>
+          ) : (
+            <>
+              <Save size={16} className="block md:hidden" />
+              <span className="hidden md:block">{submitText}</span>
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 };

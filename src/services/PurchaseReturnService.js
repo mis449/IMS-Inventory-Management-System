@@ -83,8 +83,13 @@ export const getPurchaseReturns = async () => {
 };
 
 export const createPurchaseReturn = async (data) => {
-  const { count } = await supabase.from('purchase_return').select('*', { count: 'exact', head: true });
-  const docNo = `PR-${String((count || 0) + 1).padStart(4, '0')}`;
+  const { data: lastRecord } = await supabase.from('purchase_return').select('return_no').order('created_at', { ascending: false }).limit(1);
+  let nextNum = 1;
+  if (lastRecord && lastRecord.length > 0 && lastRecord[0].return_no) {
+    const match = lastRecord[0].return_no.match(/\d+$/);
+    if (match) nextNum = parseInt(match[0], 10) + 1;
+  }
+  const docNo = `PR-${String(nextNum).padStart(4, '0')}`;
   
   const firstItem = data.items && data.items.length > 0 ? data.items[0] : {};
   

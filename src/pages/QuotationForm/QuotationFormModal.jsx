@@ -368,9 +368,10 @@ export default function QuotationFormModal({ isOpen, onClose, onSave, initialDat
     <ModalForm
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? "Edit Quotation" : "Quotation Form"}
-      onSubmit={handleSubmit}
+      title={initialData ? (quotationStatus === 'Accepted' || quotationStatus === 'Completed' || quotationStatus === 'Final' ? "View Quotation" : "Edit Quotation") : "Quotation Form"}
+      onSubmit={quotationStatus === 'Accepted' || quotationStatus === 'Completed' || quotationStatus === 'Final' ? (e) => e.preventDefault() : handleSubmit}
       submitText={isSubmitting ? 'Saving...' : (initialData ? 'Update Quotation' : 'Save Quotation')}
+      hideSubmit={quotationStatus === 'Accepted' || quotationStatus === 'Completed' || quotationStatus === 'Final'}
       maxWidth="max-w-6xl"
     >
       <div className="space-y-6">

@@ -209,18 +209,6 @@ CREATE TABLE public.inventory_summary (
   updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT inventory_summary_pkey PRIMARY KEY (item_code)
 );
-CREATE TABLE public.quotation (
-  id text NOT NULL,
-  quotation_no text NOT NULL UNIQUE,
-  customer_name text,
-  date date,
-  status text DEFAULT 'Active'::text,
-  supply_status text DEFAULT '-'::text,
-  details jsonb NOT NULL DEFAULT '{}'::jsonb,
-  created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT quotation_pkey PRIMARY KEY (id)
-);
 CREATE TABLE public.invoice (
   id text NOT NULL,
   invoice_no text NOT NULL UNIQUE,
@@ -244,29 +232,49 @@ CREATE TABLE public.scales_return (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT scales_return_pkey PRIMARY KEY (id)
 );
-CREATE TABLE public.purchase_order (
+CREATE TABLE public.customer (
   id text NOT NULL,
-  order_no text NOT NULL UNIQUE,
-  vendor_name text,
-  date date,
-  status text DEFAULT 'Active'::text,
-  supply_status text DEFAULT '-'::text,
-  details jsonb NOT NULL DEFAULT '{}'::jsonb,
+  name text NOT NULL,
+  title text,
+  first_name text,
+  last_name text,
+  mobile text,
+  company text,
+  sales_person text,
+  gstin text,
+  gst_treatment text,
+  pan text,
+  gst_type text,
+  address text,
+  price_list text,
+  area_pin_code text,
+  city_state text,
+  email text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT purchase_order_pkey PRIMARY KEY (id)
+  CONSTRAINT customer_pkey PRIMARY KEY (id)
 );
-CREATE TABLE public.purchase (
+CREATE TABLE public.vendor (
   id text NOT NULL,
-  purchase_no text NOT NULL UNIQUE,
-  vendor_name text,
-  date date,
-  status text DEFAULT 'Active'::text,
-  payment_status text DEFAULT '-'::text,
-  details jsonb NOT NULL DEFAULT '{}'::jsonb,
+  name text NOT NULL,
+  title text,
+  first_name text,
+  last_name text,
+  mobile text,
+  company text,
+  sales_person text,
+  gstin text,
+  gst_treatment text,
+  pan text,
+  gst_type text,
+  address text,
+  price_list text,
+  area_pin_code text,
+  city_state text,
+  email text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT purchase_pkey PRIMARY KEY (id)
+  CONSTRAINT vendor_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.purchase_return (
   id text NOT NULL,
@@ -277,5 +285,316 @@ CREATE TABLE public.purchase_return (
   details jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  vendor_address text,
+  vendor_area_pin_code text,
+  vendor_city_state text,
+  vendor_state text,
+  vendor_email text,
+  vendor_mobile text,
+  validity_date text,
+  price_list text,
+  payment_terms text,
+  internal_notes text,
+  remarks text,
+  terms_conditions text,
+  gross_amount numeric,
+  discount_amount numeric,
+  tax_amount numeric,
+  round_off_amount numeric,
+  total_amount numeric,
+  ref_purchase text,
+  items jsonb,
+  item_code text,
+  item_description text,
+  item_quantity numeric,
+  item_unit_price numeric,
+  item_discount_percent numeric,
+  item_tax_percent numeric,
+  item_net_amount numeric,
   CONSTRAINT purchase_return_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.purchase_order (
+  id text NOT NULL,
+  order_no text NOT NULL UNIQUE,
+  vendor_name text,
+  date date,
+  status text DEFAULT 'Active'::text,
+  supply_status text DEFAULT '-'::text,
+  vendor_address text,
+  area_pin_code text,
+  city_state text,
+  email text,
+  mobile text,
+  validity_date text,
+  price_list text,
+  payment_terms text,
+  buyer text,
+  reference_number text,
+  expected_delivery_date text,
+  internal_notes text,
+  remarks text,
+  terms_and_conditions text,
+  additional_notes text,
+  gross_amount numeric DEFAULT 0,
+  discount_amount numeric DEFAULT 0,
+  tax_amount numeric DEFAULT 0,
+  round_off_amount numeric DEFAULT 0,
+  total_amount numeric DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT purchase_order_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.purchase_order_items (
+  id text NOT NULL,
+  purchase_order_id text,
+  item_type text,
+  item_code text,
+  description text,
+  quantity numeric DEFAULT 0,
+  unit_price numeric DEFAULT 0,
+  discount_percent numeric DEFAULT 0,
+  tax_percent numeric DEFAULT 0,
+  net_amount numeric DEFAULT 0,
+  CONSTRAINT purchase_order_items_pkey PRIMARY KEY (id),
+  CONSTRAINT purchase_order_items_purchase_order_id_fkey FOREIGN KEY (purchase_order_id) REFERENCES public.purchase_order(id)
+);
+CREATE TABLE public.purchase (
+  id text NOT NULL,
+  purchase_no text NOT NULL UNIQUE,
+  vendor_name text,
+  date date,
+  status text DEFAULT 'Active'::text,
+  payment_status text DEFAULT '-'::text,
+  material_rcvd_date text,
+  bill_no text,
+  vendor_bill_no text,
+  bill_date text,
+  vendor_address text,
+  area_pin_code text,
+  city_state text,
+  state text,
+  email text,
+  mobile text,
+  validity_date text,
+  price_list text,
+  payment_terms text,
+  internal_notes text,
+  remarks text,
+  terms_and_conditions text,
+  gross_amount numeric DEFAULT 0,
+  discount_amount numeric DEFAULT 0,
+  tax_amount numeric DEFAULT 0,
+  round_off_amount numeric DEFAULT 0,
+  total_amount numeric DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT purchase_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.purchase_items (
+  id text NOT NULL,
+  purchase_id text,
+  item_type text,
+  item_code text,
+  description text,
+  quantity numeric DEFAULT 0,
+  unit_price numeric DEFAULT 0,
+  discount_percent numeric DEFAULT 0,
+  tax_percent numeric DEFAULT 0,
+  net_amount numeric DEFAULT 0,
+  CONSTRAINT purchase_items_pkey PRIMARY KEY (id),
+  CONSTRAINT purchase_items_purchase_id_fkey FOREIGN KEY (purchase_id) REFERENCES public.purchase(id)
+);
+CREATE TABLE public.quotation (
+  id text NOT NULL,
+  quotation_no text NOT NULL UNIQUE,
+  customer_name text,
+  date date,
+  status text DEFAULT 'Active'::text,
+  supply_status text DEFAULT '-'::text,
+  details jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT quotation_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.item (
+  id bigint NOT NULL DEFAULT nextval('item_id_seq'::regclass),
+  ItemCode text NOT NULL UNIQUE,
+  ItemName text NOT NULL,
+  ITMBrandName text,
+  ItmQtyRate numeric,
+  product_image_url text,
+  CONSTRAINT item_pkey PRIMARY KEY (id)
+);
+
+-- ==============================================================================
+-- UNIVERSAL INVENTORY SUMMARY CALCULATION
+-- ==============================================================================
+-- This function recalculates the exact stock for a specific item code
+-- by reading from all transaction tables: purchase_items, invoice, 
+-- purchase_return, scales_return, and inventory_transactions.
+
+CREATE OR REPLACE FUNCTION recalc_inventory_for_item(p_item_code character varying)
+RETURNS void AS $$
+DECLARE
+  v_purchase numeric := 0;
+  v_sales numeric := 0;
+  v_purchase_return numeric := 0;
+  v_sales_return numeric := 0;
+  v_item_name character varying := 'Unknown';
+  v_category character varying := '';
+  v_brand character varying := '';
+BEGIN
+  -- Get item details if available
+  SELECT "ItemName", "ITMBrandName" INTO v_item_name, v_brand FROM item WHERE "ItemCode" = p_item_code LIMIT 1;
+  IF NOT FOUND THEN
+     SELECT item_name, category, brand INTO v_item_name, v_category, v_brand FROM inventory_summary WHERE item_code = p_item_code LIMIT 1;
+  END IF;
+
+  -- 1. Purchases (Sum from purchase_items AND inventory_transactions)
+  SELECT 
+    COALESCE((SELECT SUM(quantity) FROM purchase_items WHERE item_code = p_item_code), 0) +
+    COALESCE((SELECT SUM(qty) FROM inventory_transactions WHERE item_code = p_item_code AND LOWER(transaction_type) = 'purchase' AND actual_date IS NOT NULL), 0)
+  INTO v_purchase;
+
+  -- 2. Sales (Sum from invoice JSON details AND inventory_transactions)
+  SELECT 
+    COALESCE((
+      SELECT SUM((elem->>'quantity')::numeric)
+      FROM invoice i
+      CROSS JOIN LATERAL jsonb_array_elements(
+        CASE WHEN jsonb_typeof(i.details->'items') = 'array' THEN i.details->'items' ELSE '[]'::jsonb END
+      ) AS elem
+      WHERE elem->>'itemCode' = p_item_code
+    ), 0) +
+    COALESCE((SELECT SUM(qty) FROM inventory_transactions WHERE item_code = p_item_code AND LOWER(transaction_type) = 'sales' AND actual_date IS NOT NULL), 0)
+  INTO v_sales;
+
+  -- 3. Purchase Returns
+  SELECT 
+    COALESCE((SELECT SUM(item_quantity) FROM purchase_return WHERE item_code = p_item_code), 0) +
+    COALESCE((SELECT SUM(qty) FROM inventory_transactions WHERE item_code = p_item_code AND LOWER(transaction_type) IN ('purchase_return', 'purchase return') AND actual_date IS NOT NULL), 0)
+  INTO v_purchase_return;
+
+  -- 4. Sales Returns
+  SELECT 
+    COALESCE((
+      SELECT SUM((elem->>'quantity')::numeric)
+      FROM scales_return sr
+      CROSS JOIN LATERAL jsonb_array_elements(
+        CASE WHEN jsonb_typeof(sr.details->'items') = 'array' THEN sr.details->'items' ELSE '[]'::jsonb END
+      ) AS elem
+      WHERE elem->>'itemCode' = p_item_code
+    ), 0) +
+    COALESCE((SELECT SUM(qty) FROM inventory_transactions WHERE item_code = p_item_code AND LOWER(transaction_type) IN ('sales_return', 'sales return') AND actual_date IS NOT NULL), 0)
+  INTO v_sales_return;
+
+  -- Update Summary Table
+  INSERT INTO inventory_summary (
+    item_code, item_name, category, brand, opening_qty,
+    purchase_qty, sales_qty, purchase_return_qty, sales_return_qty, closing_qty, updated_at
+  )
+  VALUES (
+    p_item_code, COALESCE(v_item_name, p_item_code), v_category, v_brand, 0,
+    v_purchase, v_sales, v_purchase_return, v_sales_return,
+    (0 + v_purchase + v_sales_return - v_sales - v_purchase_return),
+    CURRENT_TIMESTAMP
+  )
+  ON CONFLICT (item_code) DO UPDATE
+  SET 
+    purchase_qty = EXCLUDED.purchase_qty,
+    sales_qty = EXCLUDED.sales_qty,
+    purchase_return_qty = EXCLUDED.purchase_return_qty,
+    sales_return_qty = EXCLUDED.sales_return_qty,
+    closing_qty = inventory_summary.opening_qty + EXCLUDED.purchase_qty + EXCLUDED.sales_return_qty - EXCLUDED.sales_qty - EXCLUDED.purchase_return_qty,
+    updated_at = CURRENT_TIMESTAMP;
+
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==============================================================================
+-- TRIGGERS TO CALL RECALCULATION
+-- ==============================================================================
+
+-- 1. Trigger for purchase_items
+CREATE OR REPLACE FUNCTION trg_purchase_items_recalc() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN PERFORM recalc_inventory_for_item(OLD.item_code); END IF;
+  IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN PERFORM recalc_inventory_for_item(NEW.item_code); END IF;
+  IF TG_OP = 'UPDATE' AND OLD.item_code <> NEW.item_code THEN PERFORM recalc_inventory_for_item(OLD.item_code); END IF;
+  RETURN NULL;
+END; $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_purchase_items_recalc_trg ON purchase_items;
+CREATE TRIGGER trg_purchase_items_recalc_trg AFTER INSERT OR UPDATE OR DELETE ON purchase_items FOR EACH ROW EXECUTE FUNCTION trg_purchase_items_recalc();
+
+-- 2. Trigger for purchase_return
+CREATE OR REPLACE FUNCTION trg_purchase_return_recalc() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN PERFORM recalc_inventory_for_item(OLD.item_code); END IF;
+  IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN PERFORM recalc_inventory_for_item(NEW.item_code); END IF;
+  IF TG_OP = 'UPDATE' AND OLD.item_code <> NEW.item_code THEN PERFORM recalc_inventory_for_item(OLD.item_code); END IF;
+  RETURN NULL;
+END; $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_purchase_return_recalc_trg ON purchase_return;
+CREATE TRIGGER trg_purchase_return_recalc_trg AFTER INSERT OR UPDATE OR DELETE ON purchase_return FOR EACH ROW EXECUTE FUNCTION trg_purchase_return_recalc();
+
+-- 3. Trigger for inventory_transactions
+CREATE OR REPLACE FUNCTION trg_inventory_txn_recalc() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN PERFORM recalc_inventory_for_item(OLD.item_code); END IF;
+  IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN PERFORM recalc_inventory_for_item(NEW.item_code); END IF;
+  IF TG_OP = 'UPDATE' AND OLD.item_code <> NEW.item_code THEN PERFORM recalc_inventory_for_item(OLD.item_code); END IF;
+  RETURN NULL;
+END; $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_inventory_summary_trigger ON inventory_transactions;
+CREATE TRIGGER update_inventory_summary_trigger AFTER INSERT OR UPDATE OR DELETE ON inventory_transactions FOR EACH ROW EXECUTE FUNCTION trg_inventory_txn_recalc();
+
+-- 4. Trigger for invoice (JSON details)
+CREATE OR REPLACE FUNCTION trg_invoice_recalc() RETURNS TRIGGER AS $$
+DECLARE item record;
+BEGIN
+  IF TG_OP = 'DELETE' OR TG_OP = 'UPDATE' THEN
+     IF jsonb_typeof(OLD.details->'items') = 'array' THEN
+         FOR item IN SELECT * FROM jsonb_array_elements(OLD.details->'items') LOOP
+             IF item.value->>'itemCode' IS NOT NULL THEN PERFORM recalc_inventory_for_item(item.value->>'itemCode'); END IF;
+         END LOOP;
+     END IF;
+  END IF;
+  IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+     IF jsonb_typeof(NEW.details->'items') = 'array' THEN
+         FOR item IN SELECT * FROM jsonb_array_elements(NEW.details->'items') LOOP
+             IF item.value->>'itemCode' IS NOT NULL THEN PERFORM recalc_inventory_for_item(item.value->>'itemCode'); END IF;
+         END LOOP;
+     END IF;
+  END IF;
+  RETURN NULL;
+END; $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_invoice_recalc_trg ON invoice;
+CREATE TRIGGER trg_invoice_recalc_trg AFTER INSERT OR UPDATE OR DELETE ON invoice FOR EACH ROW EXECUTE FUNCTION trg_invoice_recalc();
+
+-- 5. Trigger for scales_return (Sales Return JSON details)
+CREATE OR REPLACE FUNCTION trg_scales_return_recalc() RETURNS TRIGGER AS $$
+DECLARE item record;
+BEGIN
+  IF TG_OP = 'DELETE' OR TG_OP = 'UPDATE' THEN
+     IF jsonb_typeof(OLD.details->'items') = 'array' THEN
+         FOR item IN SELECT * FROM jsonb_array_elements(OLD.details->'items') LOOP
+             IF item.value->>'itemCode' IS NOT NULL THEN PERFORM recalc_inventory_for_item(item.value->>'itemCode'); END IF;
+         END LOOP;
+     END IF;
+  END IF;
+  IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+     IF jsonb_typeof(NEW.details->'items') = 'array' THEN
+         FOR item IN SELECT * FROM jsonb_array_elements(NEW.details->'items') LOOP
+             IF item.value->>'itemCode' IS NOT NULL THEN PERFORM recalc_inventory_for_item(item.value->>'itemCode'); END IF;
+         END LOOP;
+     END IF;
+  END IF;
+  RETURN NULL;
+END; $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_scales_return_recalc_trg ON scales_return;
+CREATE TRIGGER trg_scales_return_recalc_trg AFTER INSERT OR UPDATE OR DELETE ON scales_return FOR EACH ROW EXECUTE FUNCTION trg_scales_return_recalc();

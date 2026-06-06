@@ -23,7 +23,8 @@ const ModalForm = ({
   zIndex = 'z-[100]',
   extraFooterAction = null,
   hideHeader = false,
-  hideFooter = false
+  hideFooter = false,
+  hideSubmit = false
 }) => {
   if (!isOpen) return null;
 
@@ -67,6 +68,7 @@ const ModalForm = ({
               submitText={submitText}
               className="w-full"
               formId={uniqueFormId}
+              hideSubmit={hideSubmit}
             />
           </div>
         )}
