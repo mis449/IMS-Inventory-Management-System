@@ -104,13 +104,14 @@ export default function PurchaseOrderFormModal({ isOpen, onClose, onSave, initia
     const roundedTotal = Math.round(total);
     const roundOff = roundedTotal - total;
 
-    setSummary({
+    setSummary(prev => ({
+      ...prev,
       grossAmount: gross,
       discountAmount: totalDiscount,
       taxAmount: totalTax,
       roundOffAmount: roundOff,
       totalAmount: roundedTotal
-    });
+    }));
   }, [items]);
 
   const handleItemChange = (id, field, value) => {
@@ -244,7 +245,10 @@ export default function PurchaseOrderFormModal({ isOpen, onClose, onSave, initia
             addSubSection={addSubSection}
             setIsCatalogOpen={setIsCatalogOpen}
           />
-          <SummaryCard summary={summary} />
+          <SummaryCard 
+            summary={summary} 
+            onFinalAmountChange={(val) => setSummary(prev => ({ ...prev, finalAmount: val }))} 
+          />
         </div>
       </div>
     </ModalForm>

@@ -128,13 +128,14 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
     const roundedTotal = Math.round(total);
     const roundOff = roundedTotal - total;
 
-    setSummary({
+    setSummary(prev => ({
+      ...prev,
       grossAmount: gross,
       discountAmount: totalDiscount,
       taxAmount: totalTax,
       roundOffAmount: roundOff,
       totalAmount: roundedTotal
-    });
+    }));
   }, [items]);
 
   const handleItemChange = (id, field, value) => {
@@ -278,7 +279,10 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
             addSubSection={addSubSection}
             setIsCatalogOpen={setIsCatalogOpen}
           />
-          <SummaryCard summary={summary} />
+          <SummaryCard 
+            summary={summary} 
+            onFinalAmountChange={(val) => setSummary(prev => ({ ...prev, finalAmount: val }))} 
+          />
         </div>
 
         {/* Footer Actions */}

@@ -99,9 +99,14 @@ export default function SalesReturnFormModal({ isOpen, onClose, onSave, initialD
     const roundedTotal = Math.round(total);
     const roundOff = roundedTotal - total;
 
-    setSummary({
-      grossAmount: gross, discountAmount: totalDiscount, taxAmount: totalTax, roundOffAmount: roundOff, totalAmount: roundedTotal
-    });
+    setSummary(prev => ({
+      ...prev,
+      grossAmount: gross,
+      discountAmount: totalDiscount,
+      taxAmount: totalTax,
+      roundOffAmount: roundOff,
+      totalAmount: roundedTotal
+    }));
   }, [items]);
 
   const handleItemChange = (id, field, value) => {
@@ -233,7 +238,10 @@ export default function SalesReturnFormModal({ isOpen, onClose, onSave, initialD
             <ItemLinesTable 
               items={items} inventoryItems={inventoryItems} handleItemChange={handleItemChange} handleItemCodeSelect={handleItemCodeSelect} removeItemLine={removeItemLine} addItemLine={addItemLine} addSection={addSection} addSubSection={addSubSection} setIsCatalogOpen={setIsCatalogOpen}
             />
-            <SummaryCard summary={summary} />
+            <SummaryCard 
+            summary={summary} 
+            onFinalAmountChange={(val) => setSummary(prev => ({ ...prev, finalAmount: val }))} 
+            />
           </div>
         </div>
 

@@ -50,23 +50,27 @@ export default function PremiumQuotationPrint({
       
       {/* Page 1: Merged Cover & Client Info Page */}
       <PageWrapper>
-        {/* Top Cover Image */}
-        <div className="mb-8 rounded-lg overflow-hidden relative">
-          <img src={coverImage} alt="Luxury Bathroom Cover" className="w-full max-h-[350px] object-cover object-center" />
-        </div>
-        
-        {/* Header Section */}
-        <div className="flex justify-between items-start mb-8">
+        {/* Header Section (Logo Top Left, Details Top Right) */}
+        <div className="flex justify-between items-start mb-6">
           <div className="flex flex-col">
             <div className="mb-2">
-               <img src={logoImg} alt="Parekh Sanitary Stores Logo" className="h-24 object-contain scale-[1.3] origin-left" />
+               <img src={logoImg} alt="Parekh Sanitary Stores Logo" className="h-20 object-contain scale-[1.3] origin-left" />
             </div>
-            <h1 className="text-4xl font-light tracking-wider text-slate-800">{documentTitle}</h1>
           </div>
           <div className="text-sm space-y-1.5 text-slate-600 text-right mt-2">
             <div><span className="font-medium mr-2">Document # :</span> {quotationNo}</div>
             <div><span className="font-medium mr-2">Created On :</span> {formattedDate}</div>
           </div>
+        </div>
+
+        {/* Top Cover Image */}
+        <div className="mb-8 rounded-lg overflow-hidden relative">
+          <img src={coverImage} alt="Luxury Bathroom Cover" className="w-full max-h-[350px] object-cover object-center" />
+        </div>
+        
+        {/* Document Title */}
+        <div className="mb-6">
+          <h1 className="text-4xl font-light tracking-wider text-slate-800">{documentTitle}</h1>
         </div>
 
         {/* Client Info Split Section */}
@@ -108,12 +112,12 @@ export default function PremiumQuotationPrint({
       {/* Page 3: Product Pages */}
       <PageWrapper>
         <Logo />
-        <h2 className="text-2xl font-light text-slate-800 mb-6 uppercase tracking-wider">Product Details</h2>
+        <h2 className="text-2xl font-bold text-slate-800 mb-6 uppercase tracking-wider">Product Details</h2>
         
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="bg-slate-100 text-slate-700 uppercase tracking-wider text-[10px]">
-              <th className="py-3 px-2 text-center w-16">Image</th>
+              <th className="py-3 px-2 text-center w-32">Image</th>
               <th className="py-3 px-2 text-left w-[35%]">Product Details</th>
               <th className="py-3 px-2 text-center w-12">Qty</th>
               <th className="py-3 px-2 text-right w-20">MRP</th>
@@ -135,10 +139,10 @@ export default function PremiumQuotationPrint({
                 <tr key={idx} className="border-b border-slate-200">
                   <td className="py-4 px-2 text-center">
                     {imageUrl ? (
-                      <img src={imageUrl} alt="product" className="w-12 h-12 object-cover mx-auto rounded border border-slate-200 shadow-sm" />
+                      <img src={imageUrl} alt="product" className="w-28 h-28 object-contain mx-auto rounded border border-slate-200 shadow-sm bg-white" />
                     ) : (
-                      <div className="w-12 h-12 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 mx-auto rounded">
-                         <span className="text-[9px]">No Img</span>
+                      <div className="w-28 h-28 bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 mx-auto rounded">
+                         <span className="text-[10px]">No Img</span>
                       </div>
                     )}
                   </td>
@@ -176,6 +180,12 @@ export default function PremiumQuotationPrint({
               <span>Grand Total:</span>
               <span>₹{Number(summary?.totalAmount || 0).toLocaleString('en-IN')}</span>
             </div>
+            {summary?.finalAmount && (
+              <div className="flex justify-between text-emerald-700 font-black text-xl border-t border-slate-300 pt-3 mt-2">
+                <span>Final Amount:</span>
+                <span>₹{Number(summary?.finalAmount || 0).toLocaleString('en-IN')}</span>
+              </div>
+            )}
           </div>
         </div>
       </PageWrapper>
