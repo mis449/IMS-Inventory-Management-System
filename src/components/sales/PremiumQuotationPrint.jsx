@@ -40,7 +40,7 @@ export default function PremiumQuotationPrint({
   );
 
   const PageWrapper = ({ children, isLast = false }) => (
-    <div className={`w-full bg-white relative flex flex-col ${isLast ? '' : 'break-after-page mb-8'}`} style={{ minHeight: '297mm', padding: '10mm', boxSizing: 'border-box' }}>
+    <div className={`w-full bg-white relative flex flex-col min-h-[297mm] print:min-h-0 ${isLast ? '' : 'break-after-page mb-8 print:mb-0'}`} style={{ padding: '10mm', boxSizing: 'border-box' }}>
       {children}
     </div>
   );
@@ -51,32 +51,32 @@ export default function PremiumQuotationPrint({
       {/* Page 1: Merged Cover & Client Info Page */}
       <PageWrapper>
         {/* Header Section (Logo Top Left, Details Top Right) */}
-        <div className="flex justify-between items-start mb-6">
+        <div className="flex justify-between items-start mb-6 print:mb-4">
           <div className="flex flex-col">
             <div className="mb-2">
-               <img src={logoImg} alt="Parekh Sanitary Stores Logo" className="h-20 object-contain scale-[1.3] origin-left" />
+               <img src={logoImg} alt="Parekh Sanitary Stores Logo" className="h-20 print:h-16 object-contain scale-[1.3] origin-left" />
             </div>
           </div>
-          <div className="text-sm space-y-1.5 text-slate-600 text-right mt-2">
+          <div className="text-sm print:text-xs space-y-1.5 text-slate-600 text-right mt-2">
             <div><span className="font-medium mr-2">Document # :</span> {quotationNo}</div>
             <div><span className="font-medium mr-2">Created On :</span> {formattedDate}</div>
           </div>
         </div>
 
         {/* Top Cover Image */}
-        <div className="mb-8 rounded-lg overflow-hidden relative">
-          <img src={coverImage} alt="Luxury Bathroom Cover" className="w-full max-h-[350px] object-cover object-center" />
+        <div className="mb-8 print:mb-6 rounded-lg overflow-hidden relative">
+          <img src={coverImage} alt="Luxury Bathroom Cover" className="w-full max-h-[350px] print:max-h-[280px] object-cover object-center" />
         </div>
         
         {/* Document Title */}
-        <div className="mb-6">
-          <h1 className="text-4xl font-light tracking-wider text-slate-800">{documentTitle}</h1>
+        <div className="mb-6 print:mb-4">
+          <h1 className="text-4xl print:text-3xl font-light tracking-wider text-slate-800">{documentTitle}</h1>
         </div>
 
         {/* Client Info Split Section */}
-        <div className="flex gap-12 flex-1">
+        <div className="flex gap-12 print:gap-8 flex-1">
           <div className="w-[45%] rounded-lg overflow-hidden flex items-center justify-center">
-            <img src={verticalImage} alt="Bathroom details" className="w-full max-h-[500px] object-contain" />
+            <img src={verticalImage} alt="Bathroom details" className="w-full max-h-[500px] print:max-h-[380px] object-contain" />
           </div>
           <div className="w-[55%] flex flex-col py-2">
             <div className="space-y-4 text-sm text-slate-800 mb-8">
@@ -249,19 +249,19 @@ export default function PremiumQuotationPrint({
       <PageWrapper isLast={true}>
         <Logo />
         
-        <div className="border border-slate-200 rounded-xl p-8 mb-8 flex-1 flex flex-col justify-center shadow-sm items-center">
-          <img src={thirdImg} alt="Brand Showcase" className="w-full max-h-[500px] object-contain" />
+        <div className="border border-slate-200 rounded-xl p-8 print:p-4 mb-8 print:mb-4 flex-1 flex flex-col justify-center shadow-sm items-center">
+          <img src={thirdImg} alt="Brand Showcase" className="w-full max-h-[500px] print:max-h-[350px] object-contain" />
         </div>
 
-        <div className="bg-black text-white p-12 rounded-xl mt-auto">
-          <h2 className="text-center text-xl font-medium tracking-widest mb-12 uppercase">
+        <div className="bg-black text-white p-12 print:p-6 rounded-xl mt-auto print:bg-black" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+          <h2 className="text-center text-xl print:text-lg font-medium tracking-widest mb-12 print:mb-6 uppercase">
             Central India's Largest Bathroom Solution Showroom
           </h2>
           
-          <div className="flex flex-col items-center mb-10">
+          <div className="flex flex-col items-center mb-10 print:mb-6">
             <div className="w-16 h-16 bg-white/10 border-2 border-white flex items-center justify-center text-2xl font-black mb-2">PS</div>
             <span className="text-xs tracking-widest text-slate-400">SINCE 1964</span>
-            <h3 className="text-3xl font-bold tracking-widest mt-4 mb-2">PAREKH GALLERIUM</h3>
+            <h3 className="text-3xl print:text-2xl font-bold tracking-widest mt-4 mb-2">PAREKH GALLERIUM</h3>
             <p className="text-xs text-center text-slate-300 tracking-wider leading-relaxed">
               SANITARY WARE | BATHROOM FIXTURES | SWIMMING POOL | SPA & JACUZZI<br/>
               TILES & WOODEN FLOORING | PLUMBING & PIPING | FALSE CEILING |<br/>
@@ -269,7 +269,7 @@ export default function PremiumQuotationPrint({
             </p>
           </div>
 
-          <div className="flex justify-center gap-16 text-xs text-slate-300">
+          <div className="flex justify-center gap-16 print:gap-8 text-xs text-slate-300">
             <div className="text-right space-y-1">
               <h4 className="font-bold text-white uppercase tracking-wider mb-2">Corporate Office</h4>
               <p>C - 1,3 & 4, Rishab Complex,</p>
@@ -289,7 +289,7 @@ export default function PremiumQuotationPrint({
           </div>
         </div>
         
-        <div className="flex justify-between items-center text-[10px] text-slate-400 mt-4 px-2">
+        <div className="flex justify-between items-center text-[10px] text-slate-400 mt-4 print:mt-1 px-2">
           <span>Page 5</span>
           <span>Document made through Botivate, an IMS Software</span>
         </div>

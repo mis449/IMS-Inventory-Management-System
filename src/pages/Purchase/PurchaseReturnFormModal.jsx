@@ -257,6 +257,15 @@ export default function PurchaseReturnFormModal({ isOpen, onClose, onSave, initi
         />
 
         <div className="min-h-[250px] py-4">
+            <style>{`
+              @media print {
+                html, body, #root, .fixed, .fixed > div {
+                  height: auto !important;
+                  display: block !important;
+                  overflow: visible !important;
+                }
+              }
+            `}</style>
           <ItemLinesTable 
             items={items}
             inventoryItems={inventoryItems}

@@ -294,53 +294,51 @@ export default function InvoiceFormModal({ isOpen, onClose, onSave, initialData,
         <style>
           {`
             @media print {
-              body * {
-                visibility: hidden;
-              }
-              
-              #invoice-print-area, #invoice-print-area * {
-                visibility: visible;
-              }
-              
-              /* Make the modal overlay absolute at top left, and let it grow to full height */
-              .fixed.inset-0 {
-                position: absolute !important;
-                top: 0 !important;
-                left: 0 !important;
+              html, body {
                 height: auto !important;
-                min-height: 100% !important;
                 overflow: visible !important;
-                background: none !important;
+                margin: 0 !important;
                 padding: 0 !important;
+                background: white !important;
               }
               
-              /* Let the container grow */
-              .fixed.inset-0 > div {
+              /* Hide all elements that are NOT in the path to the print area and NOT inside it */
+              body *:not(:has(#invoice-print-area)):not(#invoice-print-area):not(#invoice-print-area *) {
+                display: none !important;
+              }
+              
+              /* Reset the path from body to the print area so it flows naturally for pagination */
+              body *:has(#invoice-print-area) {
+                position: static !important;
                 height: auto !important;
                 min-height: 0 !important;
                 max-height: none !important;
                 overflow: visible !important;
-                box-shadow: none !important;
                 margin: 0 !important;
+                padding: 0 !important;
                 border: none !important;
+                box-shadow: none !important;
+                transform: none !important;
+                background: none !important;
               }
               
-              /* Let the print area grow */
               #invoice-print-area {
-                height: auto !important;
-                min-height: 0 !important;
-                overflow: visible !important;
                 position: static !important;
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
               }
               
-              /* Hide the control bar */
+              /* Hide the control bar explicitly */
               .fixed.inset-0 > div > div:first-child {
                 display: none !important;
               }
               
               .break-after-page {
-                page-break-after: always;
-                break-after: page;
+                page-break-after: always !important;
+                break-after: page !important;
               }
               
               @page {

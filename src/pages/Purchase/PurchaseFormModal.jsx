@@ -315,14 +315,52 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
         <style>
           {`
             @media print {
-              body * { visibility: hidden; }
-              #purchase-print-area, #purchase-print-area * { visibility: visible; }
-              #purchase-print-area {
-                position: absolute; left: 0; top: 0;
-                width: 100% !important; max-width: 100% !important;
-                margin: 0 !important; padding: 0 !important;
-                box-shadow: none !important; border: none !important;
+              html, body {
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
               }
+              
+              /* Hide all elements that are NOT in the path to the print area and NOT inside it */
+              body *:not(:has(#purchase-print-area)):not(#purchase-print-area):not(#purchase-print-area *) {
+                display: none !important;
+              }
+              
+              /* Reset the path from body to the print area so it flows naturally for pagination */
+              body *:has(#purchase-print-area) {
+                position: static !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                transform: none !important;
+                background: none !important;
+              }
+              
+              #purchase-print-area {
+                position: static !important;
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+              
+              .fixed.inset-0 > div > div:first-child {
+                display: none !important;
+              }
+              
+              .break-after-page {
+                page-break-after: always !important;
+                break-after: page !important;
+              }
+              
               @page {
                 size: ${printOrientation === 'Horizontal' ? 'landscape' : 'portrait'};
                 margin: 15mm;
@@ -411,7 +449,7 @@ export default function PurchaseFormModal({ isOpen, onClose, onSave, initialData
               <div className="mb-8">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-800 text-white font-bold uppercase tracking-widest text-[9px]">
+                    <tr className="bg-slate-800 text-white font-bold uppercase tracking-widest text-[9px]" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
                       <th className="py-2 px-1 text-center w-8">SN</th>
                       <th className="py-2 px-1 text-center w-12">Image</th>
                       <th className="py-2 px-1 text-left w-[40%]">Product Details</th>
